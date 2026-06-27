@@ -1,0 +1,447 @@
+openapi: "3.1.0"
+info:
+  title: Baran Cloud API
+  version: "0.1.0"
+  description: |
+    Online coordinator API for the Baran disaster-response mesh.
+    Serves bridged (internet-reachable) records and allows coordinators
+    to author signed replies that re-inject into the mesh.
+    
+    ## Honest reach rule
+    Only records with reach ≥ `bridged` are visible here.
+    `in_mesh` records are invisible to online surfaces by design.
+    
+    ## Authentication
+    Coordinator auth via Ed25519-signed challenge-response.
+    All write endpoints require a valid coordinator session.
+servers:
+  - url: https://api.baran.rescue/v1
+    description: Production API
+  - url: http://localhost:3001/v1
+    description: Local stub
+
+paths:
+  /records:
+    get:
+      operationId: listRecords
+      summary: List bridged records
+      description: Returns signed records that have reached the cloud (bridged or anchored). Filter by kind, priority, geo cell, time range.
+      parameters:
+        - name: kind
+          in: query
+          schema:
+            type: string
+            enum: [report, attestation]
+        - name: prio_min
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 5
+        - name: prio_max
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 5
+        - name: geo_cell
+          in: query
+          schema:
+            type: string
+            description: 8-char Plus Code prefix
+        - name: since
+          in: query
+          schema:
+            type: string
+            description: HLC cursor for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of records with computed trust + reach
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecordWithMeta"
+
+    post:
+      operationId: createRecord
+      summary: Create a coordinator-authored record
+      description: |
+        Coordinators (online surfaces) can author `status`, `task` reports and
+        `corroborate`/`resolve` attestations. These are tagged `origin:online`
+        and lower-trust until verified in-zone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignedRecordInput"
+      responses:
+        "201":
+          description: Record accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordWithMeta"
+        "401":
+          description: Missing coordinator authentication
+        "403":
+          description: Unauthorized — coordinator scope insufficient
+
+  /records/{recordId}:
+    get:
+      operationId: getRecord
+      summary: Get a single record with its attestations
+      parameters:
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Record with attestations and fold result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordDetail"
+        "404":
+          description: Record not found or not yet bridged
+
+  /records/{recordId}/attestations:
+    get:
+      operationId: getAttestations
+      summary: List attestations targeting a report
+      parameters:
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Attestations for this report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecordWithMeta"
+
+  /incidents:
+    get:
+      operationId: listIncidents
+      summary: Aggregated incident view for coordinators
+      description: Groups reports by geo cell + type, shows top-level trust + reach summary.
+      parameters:
+        - name: geo_cell
+          in: query
+          schema:
+            type: string
+        - name: active_only
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Incident summary list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncidentSummary"
+
+  /auth/challenge:
+    post:
+      operationId: authChallenge
+      summary: Request an Ed25519 auth challenge
+      description: Returns a single-use nonce the coordinator signs with its device key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id]
+              properties:
+                device_id:
+                  type: string
+      responses:
+        "200":
+          description: Challenge nonce
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nonce:
+                    type: string
+
+  /auth/verify:
+    post:
+      operationId: authVerify
+      summary: Verify a signed challenge and issue a bearer token
+      description: |
+        The coordinator signs `canon({ device_id, nonce })` with its Ed25519 key.
+        The server re-derives the device_id from the presented key (anti-spoof),
+        verifies the signature, and returns a role-scoped bearer token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id, pub_b64u, sig]
+              properties:
+                device_id:
+                  type: string
+                pub_b64u:
+                  type: string
+                  description: base64url raw Ed25519 public key (32 bytes)
+                sig:
+                  type: string
+      responses:
+        "200":
+          description: Bearer token + role
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  role:
+                    type: string
+                    enum: [coordinator, admin]
+                  device_id:
+                    type: string
+        "401":
+          description: Challenge missing/expired or signature invalid
+
+  /bridge-key:
+    get:
+      operationId: getBridgeKey
+      summary: The pinned bridge (Big Peer) public key
+      description: Clients use this key to verify the signed `bridge` receipts that prove a record's `bridged` reach.
+      responses:
+        "200":
+          description: Pinned bridge identity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device_id:
+                    type: string
+                  pub_b64u:
+                    type: string
+
+  /exports:
+    get:
+      operationId: exportAudit
+      summary: Provenance-preserving audit export (admin only)
+      description: CSV export including signatures, content hashes, computed tier and reach. Requires the `admin` role.
+      security:
+        - CoordinatorAuth: []
+      responses:
+        "200":
+          description: CSV export
+          content:
+            text/csv:
+              schema:
+                type: string
+        "403":
+          description: Admin role required
+    post:
+      operationId: exportData
+      summary: Export records with provenance
+      description: CSV or GeoJSON export preserving signatures for audit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [csv, geojson]
+                filters:
+                  $ref: "#/components/schemas/ExportFilters"
+      responses:
+        "200":
+          description: Export file
+
+  /ws:
+    get:
+      operationId: wsEvents
+      summary: WebSocket event stream
+      description: Real-time stream of new bridged records, reach changes, and coordinator replies.
+      responses:
+        "101":
+          description: WebSocket upgrade
+          headers:
+            Upgrade:
+              schema:
+                type: string
+                enum: [websocket]
+
+components:
+  schemas:
+    SignedRecordInput:
+      type: object
+      required: [schema_version, kind, id, author_id, author_seq, type, prio, created_wall_ms, hlc, payload, content_hash, sig]
+      properties:
+        schema_version:
+          type: integer
+        kind:
+          type: string
+          enum: [report, attestation]
+        id:
+          type: string
+        author_id:
+          type: string
+          description: base64url device_id
+        author_seq:
+          type: integer
+        type:
+          type: string
+          description: report type or att_type
+        prio:
+          type: integer
+          minimum: 0
+          maximum: 5
+        created_wall_ms:
+          type: integer
+        hlc:
+          type: string
+        payload:
+          type: object
+        subject_id:
+          type: string
+        target_report_id:
+          type: string
+        target_content_hash:
+          type: string
+        att_type:
+          type: string
+        fact:
+          type: string
+        proof:
+          type: object
+        content_hash:
+          type: string
+        sig:
+          type: string
+
+    RecordWithMeta:
+      type: object
+      properties:
+        record:
+          $ref: "#/components/schemas/SignedRecordInput"
+        meta:
+          $ref: "#/components/schemas/RecordMeta"
+
+    RecordMeta:
+      type: object
+      properties:
+        reach:
+          $ref: "#/components/schemas/ReachState"
+        tier:
+          type: integer
+        tierName:
+          type: string
+        verified:
+          type: boolean
+        disputed:
+          type: boolean
+        location_verified:
+          type: boolean
+        received_at:
+          type: string
+          format: date-time
+
+    ReachState:
+      type: object
+      properties:
+        level:
+          type: string
+          enum: [in_mesh, bridged, anchored]
+        bridge_timestamp:
+          type: integer
+        anchor_tx_hash:
+          type: string
+
+    RecordDetail:
+      type: object
+      properties:
+        record:
+          $ref: "#/components/schemas/RecordWithMeta"
+        attestations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecordWithMeta"
+        fold:
+          $ref: "#/components/schemas/FoldResult"
+
+    FoldResult:
+      type: object
+      properties:
+        tier:
+          type: integer
+        tierName:
+          type: string
+        verified:
+          type: boolean
+        disputed:
+          type: boolean
+        location_verified:
+          type: boolean
+
+    IncidentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Plus Code cell + type hash
+        cell:
+          type: string
+          description: 8-char Plus Code
+        type:
+          type: string
+        count:
+          type: integer
+        maxTier:
+          type: integer
+        maxReach:
+          type: string
+        disputed:
+          type: boolean
+        latestHlc:
+          type: string
+
+    ExportFilters:
+      type: object
+      properties:
+        kind:
+          type: string
+        geo_cell:
+          type: string
+        since:
+          type: string
+        prio_min:
+          type: integer
+
+  securitySchemes:
+    CoordinatorAuth:
+      type: http
+      scheme: bearer
+      description: Ed25519-signed JWT with coordinator device_id
