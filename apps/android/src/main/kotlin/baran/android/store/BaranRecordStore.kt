@@ -6,8 +6,6 @@ import baran.trust.VerificationFold
 
 /**
  * Local signed-record store on Android.
- * Stores records in SQLite/Room with signature verification.
- *
  * Implements the SignedRecordStore interface from baran-core.
  * All records verified before insertion (per P0-2).
  */

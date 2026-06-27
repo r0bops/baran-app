@@ -12,7 +12,7 @@ import { sha256 } from '@noble/hashes/sha256';
 // noble-ed25519 v2 needs a sync sha512 to expose sync sign/verify/getPublicKey.
 ed.etc.sha512Sync = (...m: Uint8Array[]) => sha512(ed.etc.concatBytes(...m));
 
-// ---- canonical JSON (mirrors canonical.ts / gen-vectors.js canon()) ----
+// canonical JSON — mirrors canonical.ts / gen-vectors.js canon()
 export function canon(value: unknown): string {
   if (value === null) return 'null';
   if (Array.isArray(value)) return '[' + value.map(canon).join(',') + ']';
@@ -33,7 +33,7 @@ export function canon(value: unknown): string {
   return JSON.stringify(value);
 }
 
-// ---- base64url (browser, no Buffer) ----
+// base64url (browser, no Buffer)
 export function base64urlEncode(bytes: Uint8Array): string {
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
@@ -60,7 +60,6 @@ export function hexToBytes(s: string): Uint8Array {
   return out;
 }
 
-// ---- identity ----
 export interface Identity {
   seed: Uint8Array;
   seedHex: string;
@@ -91,7 +90,6 @@ export function fingerprint(pubRaw: Uint8Array): string {
   return base64urlEncode(sha256(pubRaw).subarray(0, 12));
 }
 
-// ---- sign / verify ----
 export interface SignResult {
   canonical: string;
   content_hash: string;

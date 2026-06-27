@@ -1,10 +1,5 @@
 #!/usr/bin/env node
-// baran-integration-test: end-to-end test of the API seam
-// 1. Start API stub server
-// 2. Query records (must return test-vector data)
-// 3. POST a coordinator-authored status reply
-// 4. Verify the reply with baran-core-ts
-// 5. Fetch the report with attestations and verify fold result
+// End-to-end test of the API seam: start the stub, query records, post + verify a signed coordinator reply.
 
 import { spawn } from 'child_process';
 import { createHash, createPrivateKey, createPublicKey, sign, verify } from 'crypto';
@@ -37,7 +32,6 @@ function canon(v) {
   return JSON.stringify(v);
 }
 
-// Start the API stub
 const child = spawn('node', ['src/server.mjs'], {
   cwd: STUB_DIR,
   env: { ...process.env, PORT: String(PORT) },
@@ -46,7 +40,6 @@ const child = spawn('node', ['src/server.mjs'], {
 
 const BASE = `http://localhost:${PORT}/v1`;
 
-// Wait for server to start
 await new Promise((resolve) => {
   child.stdout.on('data', (d) => {
     const s = d.toString();
@@ -70,7 +63,6 @@ async function post(path, body) {
 }
 
 try {
-  // 1. List records
   console.log('1. GET /records');
   const records = await get('/records?limit=50');
   assert(Array.isArray(records), 'records is an array');
@@ -84,7 +76,6 @@ try {
 
   console.log(`   Found ${records.length} records, SOS tier=${sos.meta.tierName}`);
 
-  // 2. Get single record with attestations
   console.log('2. GET /records/:id');
   const detail = await get(`/records/${sos.record.id}`);
   assert(detail.record, 'detail has record');
@@ -93,14 +84,12 @@ try {
   assert(typeof detail.fold.tier === 'number', 'fold.tier is a number');
   console.log(`   Record has ${detail.attestations.length} attestations, tier=${detail.fold.tierName}`);
 
-  // 3. Incidents
   console.log('3. GET /incidents');
   const incidents = await get('/incidents');
   assert(Array.isArray(incidents), 'incidents is an array');
   assert(incidents.length > 0, 'incidents length > 0');
   console.log(`   ${incidents.length} incidents`);
 
-  // 4. POST a coordinator reply (status report, signed with Ed25519)
   console.log('4. POST /records — coordinator reply');
   const coordSeedHex = 'aa'.repeat(32);
   const PKCS8_PREFIX = Buffer.from('302e020100300506032b657004220420', 'hex');
@@ -123,7 +112,6 @@ try {
     payload: { msg: 'equipo SAR en camino, ETA 45 min', plus_code: '77GR2J4C+9P' },
   };
 
-  // Compute content_hash and sig properly
   const canonicalStr = canon(statusReport);
   const msg = Buffer.from(canonicalStr, 'utf8');
   const sigBuf = sign(null, msg, priv);
@@ -142,11 +130,9 @@ try {
   // Unknown keys get accepted but may be tagged lower-trust
   assert(postResult.data?.meta?.tier >= 0, 'coordinator report accepted');
 
-  // 5. Verify the server-signed content_hash matches ours
   assert(postResult.data.record.content_hash === contentHashVal, 'server content_hash matches client-computed');
   console.log(`   Coordinator reply created: ${postResult.data.record.id}`);
 
-  // 6. Verify roundtrip: the signed record we sent verifies with our own key
   const { sig: _s, content_hash: _ch, ...bodyToVerify } = signedReport;
   const verifyResult = verify(
     null,
@@ -156,7 +142,6 @@ try {
   );
   assert(verifyResult === true, 'coordinator signature self-verifies');
 
-  // 7. Fetch the new record back
   console.log('5. Verify roundtrip — re-fetch');
   const fetched = await get(`/records/${coordId}:1`);
   assert(fetched.record?.id === `${coordId}:1`, 're-fetched record exists');

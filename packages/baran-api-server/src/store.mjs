@@ -1,17 +1,15 @@
-// Durable append-only record store.
-// Records are persisted as JSON Lines so the field picture survives restarts.
-// Append-only + idempotent on content_hash — mirrors the CRDT semantics of the
-// mesh (records are never mutated or deleted, only superseded by attestations).
+// Durable append-only store: records persist as JSON Lines, idempotent on
+// content_hash — mirrors the mesh CRDT (records are superseded, never mutated).
 import { appendFileSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
 
 export class RecordStore {
   constructor(filePath) {
     this.filePath = filePath;
-    this.records = new Map(); // id -> record
-    this.attestationsByReport = new Map(); // reportId -> [attestation,...]
-    this.bridgeReceipts = new Map(); // reportId -> { sig, server_hlc, ts }
-    this.seenHashes = new Set(); // content_hash dedup
+    this.records = new Map();
+    this.attestationsByReport = new Map();
+    this.bridgeReceipts = new Map();
+    this.seenHashes = new Set();
     this._load();
   }
 

@@ -60,7 +60,6 @@ export default function App() {
     }
   }, []);
 
-  // bootstrap: coordinator identity (keychain on desktop), auth or register, load
   useEffect(() => {
     (async () => {
       try {
@@ -77,7 +76,6 @@ export default function App() {
     })();
   }, [loadReports, loadIncidents, flash]);
 
-  // live updates
   useEffect(() => {
     return connectWebSocket(
       (event, data) => {
@@ -151,7 +149,6 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#0a0f1a', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Header */}
       <header style={{ padding: '10px 20px', backgroundColor: '#1a1a2e', borderBottom: '1px solid #16213e', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#38bdf8' }}>Baran · Coordinación</h1>
@@ -167,7 +164,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Sub-bar: coordinator identity + live + filters */}
       <div style={{ padding: '6px 20px', backgroundColor: '#16213e', fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: wsLive ? '#22c55e' : '#ef4444', display: 'inline-block' }} />
@@ -181,16 +177,13 @@ export default function App() {
         {(view === 'map' || view === 'records') && <Filters value={filters} onChange={setFilters} />}
       </div>
 
-      {/* Toast */}
       {toast && (
         <div style={{ position: 'absolute', top: 92, right: 24, backgroundColor: '#1e3a5f', border: '1px solid #38bdf8', color: '#e0f2fe', padding: '8px 14px', borderRadius: 8, fontSize: 13, zIndex: 10, boxShadow: '0 4px 16px #0008' }}>
           {toast}
         </div>
       )}
 
-      {/* Main */}
       {wide ? (
-        // Desktop: 3 columns — incidents rail · map/records · detail + actions
         <main style={{ flex: 1, display: 'flex', overflow: 'hidden', padding: 12, gap: 12 }}>
           <div style={{ ...panel, width: 300, flexShrink: 0, overflow: 'auto', padding: 12 }}>
             <h4 style={{ margin: '0 0 8px', color: '#94a3b8', fontSize: 13 }}>📊 Incidentes</h4>
@@ -206,7 +199,6 @@ export default function App() {
           </div>
         </main>
       ) : (
-        // Narrow: list/map + slide-in detail
         <main style={{ flex: 1, display: 'flex', overflow: 'hidden', padding: 12, gap: 12 }}>
           <div style={{ ...panel, width: detail ? '46%' : '100%', overflow: 'auto', padding: 12 }}>
             {view === 'incidents' ? incidentsList : mapOrRecords}

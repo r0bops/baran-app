@@ -85,7 +85,6 @@ export function MapView({
           </div>
         ) : (
           <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%' }}>
-            {/* grid */}
             {Array.from({ length: 9 }).map((_, i) => (
               <line key={`v${i}`} x1={PAD + (i * (W - 2 * PAD)) / 8} y1={PAD} x2={PAD + (i * (W - 2 * PAD)) / 8} y2={H - PAD} stroke="#16213e" strokeWidth={1} />
             ))}
@@ -113,7 +112,6 @@ export function MapView({
           </svg>
         )}
       </div>
-      {/* legend */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, padding: '8px 2px 0', fontSize: 11, color: '#94a3b8' }}>
         {Object.entries(TYPE_COLORS).map(([t, c]) => (
           <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>

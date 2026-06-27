@@ -1,7 +1,5 @@
-// Minimal offline Open Location Code (Plus Code) decoder.
-// Decodes a full or coarse (8-char) code to its cell CENTER {lat,lng}.
-// Pair-level precision (~14 m at 10 digits, ~275 m at 8 digits) — enough to
-// position pins on a schematic offline map without any network/basemap tiles.
+// Minimal offline Open Location Code (Plus Code) decoder: full or coarse (8-char)
+// code → cell CENTER {lat,lng}. ~14 m at 10 digits / ~275 m at 8 digits, no basemap tiles.
 const ALPHABET = '23456789CFGHJMPQRVWX';
 
 export interface LatLng {

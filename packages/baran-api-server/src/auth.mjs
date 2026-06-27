@@ -1,9 +1,6 @@
-// Coordinator authentication + RBAC.
-// Coordinators prove control of their Ed25519 key (the same identity used to sign
-// records) via challenge-response. The server then issues a short-lived bearer
-// token (HMAC-signed) carrying the device_id and role. Writes require a valid
-// token; the role gates privileged routes. No passwords, no shared secrets on the
-// wire — the key that signs records is the key that authenticates.
+// Coordinator auth + RBAC via Ed25519 challenge-response: the key that signs
+// records is the key that authenticates. Issues short-lived HMAC bearer tokens
+// carrying device_id + role; the role gates privileged routes.
 import crypto from 'crypto';
 import { canon, verifyPayload, fingerprint, base64urlDecode } from '../../baran-core-ts/dist/index.js';
 
@@ -14,7 +11,7 @@ export class Auth {
   constructor({ secret, admins = [] } = {}) {
     this.secret = secret || crypto.randomBytes(32).toString('hex');
     this.admins = new Set(admins);
-    this.nonces = new Map(); // device_id -> { nonce, exp }
+    this.nonces = new Map();
   }
 
   challenge(deviceId) {

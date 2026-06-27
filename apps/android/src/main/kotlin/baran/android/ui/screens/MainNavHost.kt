@@ -17,10 +17,6 @@ sealed interface Nav {
     data class Detail(val id: String) : Nav
 }
 
-/**
- * The 6 rescuer surfaces: Mapa, Señales, Crear (FAB), Detalle, Yo, Ajustes.
- * Spanish-first, large touch targets, works fully offline with zero account.
- */
 @Composable
 fun MainNavHost(store: MeshStore = BaranApplication.instance.store) {
     var nav by remember { mutableStateOf<Nav>(Nav.Signals) }

@@ -34,7 +34,6 @@ class MeshStore(private val context: Context) {
     private val _signals = MutableStateFlow<List<Signal>>(emptyList())
     val signals: StateFlow<List<Signal>> = _signals.asStateFlow()
 
-    /** A report joined with its computed trust + reach + attestation list. */
     data class Signal(
         val report: ReportRecord,
         val fold: FoldResult,
@@ -80,7 +79,7 @@ class MeshStore(private val context: Context) {
         recompute()
     }
 
-    // ---- ingestion (signature-verified before storage) ----
+    // ingestion — signature-verified before storage
     private fun ingestReport(r: ReportRecord) {
         if (!Crypto.verify(r.toMap(), identities[r.authorId] ?: return)) return
         reports[r.id] = r
@@ -107,7 +106,7 @@ class MeshStore(private val context: Context) {
         _signals.value = list
     }
 
-    // ---- demo neighbourhood so the field UI is populated on first launch ----
+    // demo neighbourhood so the field UI is populated on first launch
     private fun seedDemoMesh() {
         val bob = Crypto.keyFromSeed(Crypto.IDS["bob"]!!)
         val carol = Crypto.keyFromSeed(Crypto.IDS["carol"]!!)

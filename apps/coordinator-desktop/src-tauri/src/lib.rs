@@ -16,7 +16,6 @@ fn keychain_set(seed: String) -> Result<(), String> {
     entry.set_password(&seed).map_err(|e| e.to_string())
 }
 
-/// Load the coordinator seed from the OS keychain, or `None` if not yet set.
 #[tauri::command]
 fn keychain_get() -> Result<Option<String>, String> {
     let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_USER).map_err(|e| e.to_string())?;

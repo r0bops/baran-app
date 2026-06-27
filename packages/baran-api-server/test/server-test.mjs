@@ -1,5 +1,4 @@
-// End-to-end test of the real API backend: auth, RBAC, signed writes, pinned
-// bridge receipts, the vector-locked fold, and durable persistence across restart.
+// End-to-end test of the real API backend: auth, RBAC, signed writes, bridge receipts, fold, persistence.
 import { spawn } from 'child_process';
 import { rmSync, mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
@@ -73,7 +72,6 @@ try {
   const bridgeKey = await waitUp();
   console.log('Baran API server test\n');
 
-  // 1. seed + visibility (all bridged)
   console.log('1. Seeded records are bridged + visible');
   const recs = await (await fetch(`${BASE}/v1/records?limit=100`)).json();
   ok(recs.length > 0, 'records returned');
@@ -82,7 +80,6 @@ try {
   ok(sos && sos.meta.tier >= 1, 'SOS present with a tier');
   console.log(`   ${recs.length} records, SOS tier=${sos.meta.tierName}`);
 
-  // 2. bridge receipt is real (signed by the pinned key)
   console.log('2. Bridge receipt verifies against pinned key');
   const detail = await (await fetch(`${BASE}/v1/records/${encodeURIComponent(sos.record.id)}`)).json();
   const rcpt = detail.bridge_receipt;
@@ -93,19 +90,16 @@ try {
   ok(receiptValid, 'bridge receipt signature valid under pinned key');
   console.log(`   pinned bridge=${bridgeKey.device_id} receipt valid=${receiptValid}`);
 
-  // 3. RBAC: write without token rejected
   console.log('3. Unauthenticated write is rejected (401)');
   const noAuth = await post('/v1/records', buildStatusReply(coord, sos.record.id, 'hola'));
   ok(noAuth.status === 401, `got ${noAuth.status} (expected 401)`);
 
-  // 4. auth challenge-response
   console.log('4. Coordinator authenticates via Ed25519 challenge-response');
   const coordAuth = await authenticate(coord);
   ok(coordAuth.status === 200 && coordAuth.body.token, 'coordinator got a token');
   ok(coordAuth.body.role === 'coordinator', `role=${coordAuth.body.role}`);
   const coordToken = coordAuth.body.token;
 
-  // 5. authed signed write accepted + bridged
   console.log('5. Authenticated signed status reply is accepted');
   const reply = buildStatusReply(coord, sos.record.id, 'Equipo SAR en camino');
   const created = await post('/v1/records', reply, coordToken);
@@ -113,13 +107,11 @@ try {
   ok(created.body.meta.reach.level === 'bridged', 'reply is bridged');
   ok(created.body.meta.origin === 'online', 'reply tagged origin:online');
 
-  // 6. identity binding: cannot author as someone else
   console.log('6. Cannot author as another identity (403)');
   const spoof = buildStatusReply(mallory, sos.record.id, 'spoof'); // signed by mallory, posted with coord token
   const spoofRes = await post('/v1/records', spoof, coordToken);
   ok(spoofRes.status === 403, `got ${spoofRes.status} (expected 403)`);
 
-  // 7. coordinator resolve flows through the fold
   console.log('7. Coordinator resolve attestation flows through the fold');
   const t = Date.now();
   const seq = 999001;
@@ -131,7 +123,6 @@ try {
   ok(after.attestations.some((a) => a.record.att_type === 'resolve' && a.record.claimer_id === coord.deviceId), 'resolve appears in timeline');
   console.log(`   attestations now: ${after.attestations.length}, disputed=${after.fold.disputed}`);
 
-  // 8. admin RBAC on export
   console.log('8. Export requires admin role');
   const coordExport = await fetch(`${BASE}/v1/exports`, { headers: { Authorization: `Bearer ${coordToken}` } });
   ok(coordExport.status === 403, `coordinator export forbidden (${coordExport.status})`);
@@ -142,7 +133,6 @@ try {
   const csv = await adminExport.text();
   ok(csv.includes('content_hash,sig') && csv.split('\n').length > 2, 'CSV has provenance columns + rows');
 
-  // 9. durability across restart
   console.log('9. Records persist across server restart');
   const countBefore = (await (await fetch(`${BASE}/v1/records?limit=200`)).json()).length;
   srv.kill();

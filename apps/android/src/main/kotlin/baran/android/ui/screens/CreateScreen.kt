@@ -29,8 +29,7 @@ private val KINDS = listOf(
 )
 
 /**
- * 3-step signal creation: tipo → ubicación (Plus Code, opción de baja precisión)
- * → detalles. On "Enviar" the record is SIGNED LOCALLY and inserted into the mesh.
+ * On "Enviar" the record is SIGNED LOCALLY and inserted into the mesh.
  * No name/account required (pseudonymous by default).
  */
 @Composable

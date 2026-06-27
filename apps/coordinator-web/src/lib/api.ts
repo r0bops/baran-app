@@ -1,4 +1,3 @@
-// API client for Baran coordinator
 const BASE = '/v1';
 
 // Bearer token (set after challenge-response auth against the real backend).

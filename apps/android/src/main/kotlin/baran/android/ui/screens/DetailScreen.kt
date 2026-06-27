@@ -20,7 +20,6 @@ import baran.android.ui.components.Pill
 import baran.domain.AttestationRecord
 
 /**
- * Report detail with the full trust history and the attestation action bar.
  * Each action authors a SIGNED attestation; the tier/reach badges update live as
  * the fold recomputes. "Confirmar en sitio" runs the proximity-proof flow.
  */

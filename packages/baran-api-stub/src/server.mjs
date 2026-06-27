@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// baran-api-stub: Zero-dependency API seam server
-// Serves REAL signed records from test vectors + allows coordinator reply signing.
-// WebSocket pushes new records + reach changes to connected clients.
+// baran-api-stub: zero-dependency API seam server serving real signed records
+// from test vectors, with coordinator reply signing and WebSocket push.
 
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
@@ -13,7 +12,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const VECTORS = join(__dirname, '..', '..', '..', 'test-vectors');
 const PORT = parseInt(process.env.PORT || '3001');
 
-// ---- load test-vector data ----
 function load(name) {
   return JSON.parse(readFileSync(join(VECTORS, name), 'utf8'));
 }
@@ -21,7 +19,7 @@ const keysData = load('keys.json');
 const cryptoVectors = load('crypto-vectors.json');
 const foldVectors = load('fold-vectors.json');
 
-// ---- Ed25519 utilities (mirrors baran-core-ts) ----
+// Ed25519 utilities (mirrors baran-core-ts).
 const PKCS8_ED25519_PREFIX = Buffer.from('302e020100300506032b657004220420', 'hex');
 const SPKI_ED25519_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
 
@@ -43,7 +41,7 @@ function verify(msgBytes, sigB64u, pubRaw) {
 }
 function contentHash(msg) { return crypto.createHash('sha256').update(msg).digest('hex'); }
 
-// ---- canonical JSON (mirrors gen-vectors.js exactly) ----
+// Canonical JSON (mirrors gen-vectors.js exactly).
 function canon(v) {
   if (v === null) return 'null';
   if (Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
@@ -57,7 +55,6 @@ function canon(v) {
   return JSON.stringify(v);
 }
 
-// ---- identities ----
 const identities = {};
 for (const [name, k] of Object.entries(keysData)) {
   const id = keyFromSeed(k.seed_hex);
@@ -69,7 +66,6 @@ for (const [, id] of Object.entries(identities)) {
   pubRawById[id.device_id] = id.pubRaw;
 }
 
-// ---- seed the store with real test-vector records ----
 const records = new Map();
 const attestationsByReport = new Map();
 
@@ -83,11 +79,9 @@ function addRecord(record) {
   }
 }
 
-// Load crypto-vectors valid SOS
 const sosAlice = cryptoVectors.cases[0].record;
 addRecord({ ...sosAlice, _received_at: Date.now(), _reach: 'bridged' });
 
-// Load all fold-vector attestations
 for (const sc of foldVectors.scenarios) {
   if (!records.has(sc.report.id)) {
     addRecord({ ...sc.report, _received_at: Date.now(), _reach: 'bridged' });
@@ -99,7 +93,6 @@ for (const sc of foldVectors.scenarios) {
   }
 }
 
-// ---- fold (server-side trust computation) ----
 const TIER = { reported: 1, corroborated: 2, on_site: 3, device_confirmed: 4, self_confirmed: 5 };
 const REV_TIER = {};
 for (const [k, v] of Object.entries(TIER)) REV_TIER[v] = k;
@@ -165,7 +158,6 @@ function verifyRecord(rec, pubRaw) {
 function recordMeta(rec) {
   const atts = attestationsByReport.get(rec.id) || [];
   const subjectId = rec.subject_id || null;
-  // Strip internal fields for response
   const { _received_at, _reach, ...clean } = rec;
   return {
     record: clean,
@@ -178,10 +170,8 @@ function recordMeta(rec) {
   };
 }
 
-// ---- WebSocket broadcast ----
 const wsClients = new Set();
 
-// ---- registered coordinator device_ids (online-origin authors) ----
 const coordinators = new Set();
 
 function broadcast(event, data) {
@@ -191,7 +181,7 @@ function broadcast(event, data) {
   }
 }
 
-// ---- coordinator key (hardcoded for stub; real = OS-encrypted) ----
+// Coordinator key, hardcoded for stub; real = OS-encrypted.
 const coordinator = keyFromSeed('aa'.repeat(32));
 const coordFingerprint = fingerprint(coordinator.pubRaw);
 pubRawById[coordFingerprint] = coordinator.pubRaw; // Register so stub can verify coordinator signatures
@@ -203,7 +193,6 @@ pubRawById[testCoord.device_id] = testCoord.pubRaw;
 
 let coordinatorSeq = 0;
 
-// ---- HTTP server ----
 const server = createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -216,7 +205,6 @@ const server = createServer((req, res) => {
   const path = url.pathname;
 
   try {
-    // GET /v1/records
     if (req.method === 'GET' && path === '/v1/records') {
       const kind = url.searchParams.get('kind');
       const prioMin = parseInt(url.searchParams.get('prio_min') || '0');
@@ -233,7 +221,6 @@ const server = createServer((req, res) => {
       return res.end(JSON.stringify(results.map(recordMeta)));
     }
 
-    // GET /v1/records/:id
     const recordMatch = path.match(/^\/v1\/records\/(.+)$/);
     if (req.method === 'GET' && recordMatch) {
       const rec = records.get(decodeURIComponent(recordMatch[1]));
@@ -260,7 +247,6 @@ const server = createServer((req, res) => {
       }));
     }
 
-    // GET /v1/records/:id/attestations
     const attMatch = path.match(/^\/v1\/records\/(.+)\/attestations$/);
     if (req.method === 'GET' && attMatch) {
       const atts = (attestationsByReport.get(decodeURIComponent(attMatch[1])) || []).map(a => {
@@ -270,7 +256,6 @@ const server = createServer((req, res) => {
       return res.end(JSON.stringify(atts.map(a => ({ record: a, meta: { reach: { level: 'bridged' } } }))));
     }
 
-    // POST /v1/records — coordinator authors a signed record
     if (req.method === 'POST' && path === '/v1/records') {
       let body = '';
       req.on('data', c => body += c);
@@ -342,7 +327,6 @@ const server = createServer((req, res) => {
       return;
     }
 
-    // GET /v1/incidents
     if (req.method === 'GET' && path === '/v1/incidents') {
       const incidents = [];
       const cells = new Map();
@@ -382,7 +366,6 @@ const server = createServer((req, res) => {
   }
 });
 
-// ---- WebSocket upgrade ----
 server.on('upgrade', (req, socket, head) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   if (url.pathname === '/v1/ws') {
@@ -411,7 +394,6 @@ server.on('upgrade', (req, socket, head) => {
     ws.send(JSON.stringify({ event: 'connected', data: { total_records: records.size }, ts: Date.now() }));
 
     socket.on('data', (buf) => {
-      // Parse WS frame for pong/heartbeat
       if (buf[0] === 0x89) { /* ping - send pong */
         const pong = Buffer.alloc(2);
         pong[0] = 0x8A; pong[1] = 0;

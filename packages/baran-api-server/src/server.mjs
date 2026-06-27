@@ -1,10 +1,8 @@
 #!/usr/bin/env node
-// Baran real API backend (Phase 2).
-// REST + WebSocket in front of a durable store, with coordinator auth/RBAC and
-// cryptographically-real reach: every record that reaches this server (the cloud
-// Big Peer) is BRIDGED, proven by a signed `bridge` receipt under a pinned key.
-// The trust fold is the SAME vector-locked implementation as the Android/mesh
-// side (imported from baran-core-ts) — one source of truth, never re-derived.
+// Baran real API backend (Phase 2): REST + WebSocket over a durable store with
+// coordinator auth/RBAC. Every record reaching this cloud Big Peer is BRIDGED,
+// proven by a signed bridge receipt; the trust fold is the vector-locked core
+// (from baran-core-ts), never re-derived.
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -35,7 +33,6 @@ const bridge = keyFromSeed(BRIDGE_SEED);
 const store = new RecordStore(DATA);
 const auth = new Auth({ secret: process.env.BARAN_AUTH_SECRET, admins: ADMINS });
 
-// ---- identity registry (device_id -> raw pubkey) ----
 const pubRawById = {};
 function registerPub(deviceId, pubRaw) {
   pubRawById[deviceId] = pubRaw;
@@ -51,7 +48,7 @@ for (const [, k] of Object.entries(load('keys.json'))) {
   registerPub(id.deviceId, id.publicKeyRaw);
 }
 
-// ---- bridge receipts: sign that a record crossed into the cloud ----
+// Bridge receipts: sign that a record crossed into the cloud.
 let serverSeq = 0;
 function issueBridgeReceipt(rec) {
   if (store.bridgeReceiptFor(rec.id)) return;
@@ -68,7 +65,6 @@ function issueBridgeReceipt(rec) {
   store.setBridgeReceipt(rec.id, { ...body, sig, timestamp: t });
 }
 
-// ---- seed from test vectors on first boot ----
 function seedFromVectors() {
   if (store.size > 0) return; // already persisted
   const crypt = load('crypto-vectors.json');
@@ -84,7 +80,7 @@ function seedFromVectors() {
 }
 seedFromVectors();
 
-// ---- trust fold (delegates to the vector-locked core) ----
+// Trust fold delegates to the vector-locked core.
 function foldFor(rec) {
   const subjectId = rec.subject_id || null;
   return coreFold(rec, store.attestationsFor(rec.id), pubRawById, subjectId);
@@ -122,16 +118,14 @@ function isVisible(rec) {
   return reachFor(rec).level !== 'in_mesh';
 }
 
-// ---- WebSocket broadcast (zero-dep manual frames) ----
 const wsClients = new Set();
 function broadcast(event, data) {
   const msg = JSON.stringify({ event, data, ts: Date.now() });
   for (const ws of wsClients) {
-    try { ws.send(msg); } catch { /* drop */ }
+    try { ws.send(msg); } catch {}
   }
 }
 
-// ---- helpers ----
 function sendJSON(res, code, obj) {
   res.writeHead(code).end(JSON.stringify(obj));
 }
@@ -144,7 +138,6 @@ function readBody(req) {
   });
 }
 
-// ---- HTTP server ----
 const server = createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -156,7 +149,6 @@ const server = createServer(async (req, res) => {
   const path = url.pathname;
 
   try {
-    // ---- auth ----
     if (req.method === 'POST' && path === '/v1/auth/challenge') {
       const { device_id } = await readBody(req);
       if (!device_id) return sendJSON(res, 400, { error: 'device_id required' });
@@ -174,12 +166,11 @@ const server = createServer(async (req, res) => {
       }
     }
 
-    // ---- pinned bridge key (so clients can verify reach receipts) ----
+    // Pinned bridge key, so clients can verify reach receipts.
     if (req.method === 'GET' && path === '/v1/bridge-key') {
       return sendJSON(res, 200, { device_id: bridge.deviceId, pub_b64u: bridge.publicKeyB64u });
     }
 
-    // ---- records ----
     if (req.method === 'GET' && path === '/v1/records') {
       const kind = url.searchParams.get('kind');
       const prioMin = parseInt(url.searchParams.get('prio_min') || '0');
@@ -215,7 +206,6 @@ const server = createServer(async (req, res) => {
       });
     }
 
-    // POST a coordinator-authored signed record (AUTH REQUIRED).
     if (req.method === 'POST' && path === '/v1/records') {
       const claims = auth.fromRequest(req);
       if (!hasRole(claims, 'coordinator', 'admin')) return sendJSON(res, 401, { error: 'authentication required' });
@@ -239,7 +229,6 @@ const server = createServer(async (req, res) => {
       return sendJSON(res, 201, meta);
     }
 
-    // ---- incidents (clustered by coarse cell) ----
     if (req.method === 'GET' && path === '/v1/incidents') {
       const cells = new Map();
       for (const rec of store.all()) {
@@ -258,7 +247,6 @@ const server = createServer(async (req, res) => {
       return sendJSON(res, 200, [...cells.values()]);
     }
 
-    // ---- audit export (ADMIN ONLY) — provenance-preserving CSV ----
     if (req.method === 'GET' && path === '/v1/exports') {
       const claims = auth.fromRequest(req);
       if (!hasRole(claims, 'admin')) return sendJSON(res, 403, { error: 'admin role required' });
@@ -278,7 +266,6 @@ const server = createServer(async (req, res) => {
   }
 });
 
-// ---- WebSocket upgrade (zero-dep) ----
 server.on('upgrade', (req, socket) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   if (url.pathname !== '/v1/ws') return socket.destroy();

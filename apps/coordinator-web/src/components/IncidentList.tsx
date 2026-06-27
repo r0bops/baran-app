@@ -24,7 +24,6 @@ function formatCell(cell: string): string {
 }
 
 export function IncidentList({ incidents, onSelect }: { incidents: Incident[]; onSelect: (incident: Incident) => void }) {
-  // Group by cell
   const byCell: Record<string, Incident[]> = {};
   for (const inc of incidents) {
     if (!byCell[inc.cell]) byCell[inc.cell] = [];
