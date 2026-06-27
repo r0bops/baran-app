@@ -20,6 +20,8 @@ import { CoordinatorPanel } from './components/CoordinatorPanel';
 import { AttestationTimeline } from './components/AttestationTimeline';
 import { Filters, DEFAULT_FILTERS, applyFilters, type FilterState } from './components/Filters';
 import { ExternalFilters, DEFAULT_EXT_FILTERS, applyExternalFilters, type ExtFilterState } from './components/ExternalFilters';
+import { OVERLAY_META, reportsToOverlay, loadUsgsQuakes, type OverlayPoint } from './lib/overlays';
+import { LayersControl } from './components/LayersControl';
 
 type View = 'map' | 'incidents' | 'records';
 
@@ -36,7 +38,8 @@ export default function App() {
   const [role, setRole] = useState<string>('');
   // SOS Venezuela 2026 public feed — external, unsigned, shown as a distinct layer.
   const [external, setExternal] = useState<ExternalReport[]>([]);
-  const [showExternal, setShowExternal] = useState(true);
+  const [usgs, setUsgs] = useState<OverlayPoint[]>([]);
+  const [enabledLayers, setEnabledLayers] = useState<Record<string, boolean>>({ sosve_reports: true, usgs_quakes: true });
   const [extFilters, setExtFilters] = useState<ExtFilterState>(DEFAULT_EXT_FILTERS);
   const [personStats, setPersonStats] = useState<PersonStats | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -89,6 +92,7 @@ export default function App() {
     const ctrl = new AbortController();
     fetchExternalReports(ctrl.signal).then(setExternal).catch(() => {});
     fetchPersonStats(ctrl.signal).then(setPersonStats).catch(() => {});
+    loadUsgsQuakes(ctrl.signal).then(setUsgs).catch(() => {});
     return () => ctrl.abort();
   }, []);
 
@@ -109,6 +113,16 @@ export default function App() {
 
   const filtered = useMemo(() => applyFilters(records, filters), [records, filters]);
   const filteredExternal = useMemo(() => applyExternalFilters(external, extFilters), [external, extFilters]);
+  const overlayPoints = useMemo(() => {
+    const pts: OverlayPoint[] = [];
+    if (enabledLayers.sosve_reports) pts.push(...reportsToOverlay(filteredExternal));
+    if (enabledLayers.usgs_quakes) pts.push(...usgs);
+    return pts;
+  }, [enabledLayers, filteredExternal, usgs]);
+  const layerCounts = useMemo(
+    () => ({ sosve_reports: filteredExternal.length, usgs_quakes: usgs.length }),
+    [filteredExternal, usgs],
+  );
 
   const onActed = useCallback(
     (m: string) => {
@@ -136,7 +150,7 @@ export default function App() {
   const mapOrRecords =
     centerView === 'map' ? (
       <Suspense fallback={<div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#64748b' }}>Cargando mapa…</div>}>
-        <MapView records={filtered} external={showExternal ? filteredExternal : []} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
+        <MapView records={filtered} overlay={overlayPoints} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
       </Suspense>
     ) : (
       <div>
@@ -193,20 +207,20 @@ export default function App() {
           {role && <span style={{ marginLeft: 6, padding: '1px 6px', borderRadius: 6, backgroundColor: '#312e81', color: '#c7d2fe', fontSize: 10 }}>{role}</span>}
         </span>
         <span style={{ color: '#475569' }}>{filtered.length} de {records.length} firmados</span>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }} title="Reportes públicos de SOS Venezuela 2026 (sin firmar)">
-          <input type="checkbox" checked={showExternal} onChange={(e) => setShowExternal(e.target.checked)} />
-          <span style={{ color: '#eab308' }}>
-            • {filteredExternal.length}{filteredExternal.length !== external.length ? `/${external.length}` : ''} públicos (SOS VE)
-          </span>
-        </label>
+        <LayersControl
+          sources={OVERLAY_META}
+          enabled={enabledLayers}
+          counts={layerCounts}
+          onToggle={(id, on) => setEnabledLayers((e) => ({ ...e, [id]: on }))}
+        />
         {personStats && (
           <span style={{ color: '#475569' }} title="Directorio público de personas">👤 {personStats.missing} buscadas · {personStats.found} halladas</span>
         )}
         {(view === 'map' || view === 'records') && <Filters value={filters} onChange={setFilters} />}
       </div>
 
-      {/* Public-feed filter bar (map view) */}
-      {showExternal && centerView === 'map' && external.length > 0 && (
+      {/* SOS-VE feed filter bar (shown when that layer is on, map view) */}
+      {enabledLayers.sosve_reports && centerView === 'map' && external.length > 0 && (
         <div style={{ padding: '5px 20px', backgroundColor: '#13203a', borderTop: '1px solid #1e293b' }}>
           <ExternalFilters reports={external} value={extFilters} onChange={setExtFilters} />
         </div>
