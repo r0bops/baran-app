@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import {
   fetchRecords,
   fetchRecord,
@@ -13,7 +13,8 @@ import { toCSV, toGeoJSON, downloadFile } from './lib/export';
 import { IncidentList } from './components/IncidentList';
 import { RecordCard, RecordDetail } from './components/RecordCard';
 import { BadgeRow } from './components/Badges';
-import { MapView } from './components/MapView';
+// MapLibre is heavy and only needed on the Mapa view — load it on demand.
+const MapView = lazy(() => import('./components/MapView').then((m) => ({ default: m.MapView })));
 import { CoordinatorPanel } from './components/CoordinatorPanel';
 import { AttestationTimeline } from './components/AttestationTimeline';
 import { Filters, DEFAULT_FILTERS, applyFilters, type FilterState } from './components/Filters';
@@ -118,7 +119,9 @@ export default function App() {
   const centerView = wide && view === 'incidents' ? 'records' : view;
   const mapOrRecords =
     centerView === 'map' ? (
-      <MapView records={filtered} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
+      <Suspense fallback={<div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#64748b' }}>Cargando mapa…</div>}>
+        <MapView records={filtered} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
+      </Suspense>
     ) : (
       <div>
         {filtered.map((rec) => (
