@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://localhost:* https://api.baran.rescue; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.maptiler.com"
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:* https://api.baran.rescue https://sosvenezuela2026.com https://demotiles.maplibre.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.maptiler.com; worker-src 'self' blob:"
     }
   },
   "bundle": {

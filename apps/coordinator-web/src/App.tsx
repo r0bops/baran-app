@@ -10,6 +10,7 @@ import {
 } from './lib/api';
 import { ensureAuth, initCoordinator } from './lib/coordinator';
 import { toCSV, toGeoJSON, downloadFile } from './lib/export';
+import { fetchExternalReports, fetchPersonStats, type ExternalReport, type PersonStats } from './lib/sosvzla';
 import { IncidentList } from './components/IncidentList';
 import { RecordCard, RecordDetail } from './components/RecordCard';
 import { BadgeRow } from './components/Badges';
@@ -32,6 +33,10 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [coordId, setCoordId] = useState<string>('');
   const [role, setRole] = useState<string>('');
+  // SOS Venezuela 2026 public feed — external, unsigned, shown as a distinct layer.
+  const [external, setExternal] = useState<ExternalReport[]>([]);
+  const [showExternal, setShowExternal] = useState(true);
+  const [personStats, setPersonStats] = useState<PersonStats | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Desktop (Tauri) and wide browsers get a 3-column layout; narrow gets tabs.
   const wide = useWide();
@@ -77,6 +82,14 @@ export default function App() {
     })();
   }, [loadReports, loadIncidents, flash]);
 
+  // Pull the SOS Venezuela 2026 public feed (best-effort; failures are non-fatal).
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetchExternalReports(ctrl.signal).then(setExternal).catch(() => {});
+    fetchPersonStats(ctrl.signal).then(setPersonStats).catch(() => {});
+    return () => ctrl.abort();
+  }, []);
+
   useEffect(() => {
     return connectWebSocket(
       (event, data) => {
@@ -120,7 +133,7 @@ export default function App() {
   const mapOrRecords =
     centerView === 'map' ? (
       <Suspense fallback={<div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#64748b' }}>Cargando mapa…</div>}>
-        <MapView records={filtered} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
+        <MapView records={filtered} external={showExternal ? external : []} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
       </Suspense>
     ) : (
       <div>
@@ -176,7 +189,14 @@ export default function App() {
           👤 coordinador <span style={{ fontFamily: 'monospace', color: '#cbd5e1' }}>{coordId.slice(0, 12) || '…'}</span>
           {role && <span style={{ marginLeft: 6, padding: '1px 6px', borderRadius: 6, backgroundColor: '#312e81', color: '#c7d2fe', fontSize: 10 }}>{role}</span>}
         </span>
-        <span style={{ color: '#475569' }}>{filtered.length} de {records.length} reportes</span>
+        <span style={{ color: '#475569' }}>{filtered.length} de {records.length} firmados</span>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }} title="Reportes públicos de SOS Venezuela 2026 (sin firmar)">
+          <input type="checkbox" checked={showExternal} onChange={(e) => setShowExternal(e.target.checked)} />
+          <span style={{ color: '#eab308' }}>• {external.length} públicos (SOS VE)</span>
+        </label>
+        {personStats && (
+          <span style={{ color: '#475569' }} title="Directorio público de personas">👤 {personStats.missing} buscadas · {personStats.found} halladas</span>
+        )}
         {(view === 'map' || view === 'records') && <Filters value={filters} onChange={setFilters} />}
       </div>
 
