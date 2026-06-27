@@ -19,6 +19,7 @@ const MapView = lazy(() => import('./components/MapView').then((m) => ({ default
 import { CoordinatorPanel } from './components/CoordinatorPanel';
 import { AttestationTimeline } from './components/AttestationTimeline';
 import { Filters, DEFAULT_FILTERS, applyFilters, type FilterState } from './components/Filters';
+import { ExternalFilters, DEFAULT_EXT_FILTERS, applyExternalFilters, type ExtFilterState } from './components/ExternalFilters';
 
 type View = 'map' | 'incidents' | 'records';
 
@@ -36,6 +37,7 @@ export default function App() {
   // SOS Venezuela 2026 public feed — external, unsigned, shown as a distinct layer.
   const [external, setExternal] = useState<ExternalReport[]>([]);
   const [showExternal, setShowExternal] = useState(true);
+  const [extFilters, setExtFilters] = useState<ExtFilterState>(DEFAULT_EXT_FILTERS);
   const [personStats, setPersonStats] = useState<PersonStats | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Desktop (Tauri) and wide browsers get a 3-column layout; narrow gets tabs.
@@ -106,6 +108,7 @@ export default function App() {
   }, [flash, loadReports, loadIncidents, selectedId, openDetail]);
 
   const filtered = useMemo(() => applyFilters(records, filters), [records, filters]);
+  const filteredExternal = useMemo(() => applyExternalFilters(external, extFilters), [external, extFilters]);
 
   const onActed = useCallback(
     (m: string) => {
@@ -133,7 +136,7 @@ export default function App() {
   const mapOrRecords =
     centerView === 'map' ? (
       <Suspense fallback={<div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#64748b' }}>Cargando mapa…</div>}>
-        <MapView records={filtered} external={showExternal ? external : []} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
+        <MapView records={filtered} external={showExternal ? filteredExternal : []} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
       </Suspense>
     ) : (
       <div>
@@ -192,13 +195,22 @@ export default function App() {
         <span style={{ color: '#475569' }}>{filtered.length} de {records.length} firmados</span>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }} title="Reportes públicos de SOS Venezuela 2026 (sin firmar)">
           <input type="checkbox" checked={showExternal} onChange={(e) => setShowExternal(e.target.checked)} />
-          <span style={{ color: '#eab308' }}>• {external.length} públicos (SOS VE)</span>
+          <span style={{ color: '#eab308' }}>
+            • {filteredExternal.length}{filteredExternal.length !== external.length ? `/${external.length}` : ''} públicos (SOS VE)
+          </span>
         </label>
         {personStats && (
           <span style={{ color: '#475569' }} title="Directorio público de personas">👤 {personStats.missing} buscadas · {personStats.found} halladas</span>
         )}
         {(view === 'map' || view === 'records') && <Filters value={filters} onChange={setFilters} />}
       </div>
+
+      {/* Public-feed filter bar (map view) */}
+      {showExternal && centerView === 'map' && external.length > 0 && (
+        <div style={{ padding: '5px 20px', backgroundColor: '#13203a', borderTop: '1px solid #1e293b' }}>
+          <ExternalFilters reports={external} value={extFilters} onChange={setExtFilters} />
+        </div>
+      )}
 
       {toast && (
         <div style={{ position: 'absolute', top: 92, right: 24, backgroundColor: '#1e3a5f', border: '1px solid #38bdf8', color: '#e0f2fe', padding: '8px 14px', borderRadius: 8, fontSize: 13, zIndex: 10, boxShadow: '0 4px 16px #0008' }}>
