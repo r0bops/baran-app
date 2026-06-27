@@ -58,8 +58,8 @@ dependencies {
     // Ditto SDK — pinned to v5.1.x (Kotlin)
     // Add after Ditto license confirmed: implementation("live.ditto:ditto:5.1.x")
 
-    // Google Nearby Connections (fallback if Ditto offline license fails)
-    // implementation("com.google.android.gms:play-services-nearby:19.0.0")
+    // Google Nearby Connections — phone-to-phone mesh, no Ditto license required
+    implementation("com.google.android.gms:play-services-nearby:19.0.0")
 
     // MapLibre Native
     // implementation("org.maplibre.gl:android-sdk:10.2.0")

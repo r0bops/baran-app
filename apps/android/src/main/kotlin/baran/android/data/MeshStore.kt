@@ -1,6 +1,9 @@
 package baran.android.data
 
 import android.content.Context
+import baran.android.mesh.MeshDelegate
+import baran.android.mesh.MeshJson
+import baran.android.mesh.SyncTransport
 import baran.app.Reach
 import baran.app.ReachLevel
 import baran.app.SignalEngine
@@ -8,20 +11,20 @@ import baran.crypto.Crypto
 import baran.domain.AttestationRecord
 import baran.domain.FoldResult
 import baran.domain.ReportRecord
+import baran.schema.CanonicalJson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * The on-device record store + reactive trust view.
+ * The on-device record store + reactive trust view, and the mesh delegate.
  *
- * In production this is backed by Ditto (CRDT mesh sync) behind the
- * `SyncTransport`/`SignedRecordStore` interfaces; here it is an in-memory model so
- * the Compose UI is the REAL UI driving REAL signed records and the REAL fold —
- * only the radio transport is deferred. Every record is verified before it enters
- * the store; trust is computed by [SignalEngine.fold], never asserted.
+ * Records authored here are signed and broadcast over [transport]; inbound payloads
+ * are signature-verified (and the signer's key checked against its device_id) BEFORE
+ * they enter the store, then re-gossiped. Trust is computed by [SignalEngine.fold],
+ * never asserted. Swapping Nearby for Ditto means swapping the transport only.
  */
-class MeshStore(private val context: Context) {
+class MeshStore(private val context: Context) : MeshDelegate {
 
     val identity = LocalIdentity.loadOrCreate(context)
     private val engine = SignalEngine(identity, startSeq = LocalIdentity.loadSeq(context))
@@ -29,10 +32,16 @@ class MeshStore(private val context: Context) {
     private val reports = LinkedHashMap<String, ReportRecord>()
     private val attestations = LinkedHashMap<String, MutableList<AttestationRecord>>()
     private val identities = HashMap<String, ByteArray>()
-    private val bridged = HashSet<String>() // ids carrying a signed bridge receipt
+    private val bridged = HashSet<String>()
+    private val seen = HashSet<String>() // content_hashes already stored (gossip dedup)
+
+    var transport: SyncTransport? = null
 
     private val _signals = MutableStateFlow<List<Signal>>(emptyList())
     val signals: StateFlow<List<Signal>> = _signals.asStateFlow()
+
+    private val _peers = MutableStateFlow(0)
+    val peers: StateFlow<Int> = _peers.asStateFlow()
 
     data class Signal(
         val report: ReportRecord,
@@ -49,27 +58,30 @@ class MeshStore(private val context: Context) {
 
     fun deviceId(): String = identity.deviceId
 
+    fun setPeerCount(n: Int) {
+        _peers.value = n
+    }
+
     fun signalFor(reportId: String): Signal? = _signals.value.find { it.report.id == reportId }
 
-    /** Author + sign a new report locally, insert, and recompute. */
     fun createReport(type: String, prio: Int, payload: Map<String, Any?>, subjectId: String? = null): ReportRecord {
         val r = engine.createReport(type, prio, payload, subjectId)
         ingestReport(r)
         LocalIdentity.saveSeq(context, engine.currentSeq())
         recompute()
+        envelope(r.toMap(), identity.deviceId)?.let { transport?.broadcast(it) }
         return r
     }
 
-    /** Author + sign an attestation against [target]. */
     fun attest(target: ReportRecord, attType: String, fact: String, proof: Map<String, Any?>? = null): AttestationRecord {
         val a = engine.createAttestation(target, attType, fact, proof)
         ingestAttestation(a)
         LocalIdentity.saveSeq(context, engine.currentSeq())
         recompute()
+        envelope(a.toMap(), identity.deviceId)?.let { transport?.broadcast(it) }
         return a
     }
 
-    /** Build an on_site proof from the rescuer's precise location. */
     fun onSiteProof(lat: Double, lng: Double, reportPlusCode: String) =
         engine.onSiteProof(lat, lng, reportPlusCode)
 
@@ -79,15 +91,58 @@ class MeshStore(private val context: Context) {
         recompute()
     }
 
-    // ingestion — signature-verified before storage
+    // ---- MeshDelegate (transport callbacks) ----
+
+    /** Verify an inbound envelope, merge it, and gossip onward if new. */
+    @Synchronized
+    override fun onPayload(payload: ByteArray) {
+        val env = MeshJson.parse(String(payload, Charsets.UTF_8)) as? Map<*, *> ?: return
+        val pub = env["pub"] as? String ?: return
+        @Suppress("UNCHECKED_CAST")
+        val rec = env["rec"] as? Map<String, Any?> ?: return
+        val contentHash = rec["content_hash"] as? String ?: return
+        if (seen.contains(contentHash)) return
+
+        val pubRaw = try { Crypto.base64urlDecode(pub) } catch (e: Exception) { return }
+        val signerId = (rec["author_id"] ?: rec["claimer_id"]) as? String ?: return
+        if (Crypto.fingerprint(pubRaw) != signerId) return // device_id must match the key
+        if (!Crypto.verify(rec, pubRaw)) return // forged signature
+
+        identities[signerId] = pubRaw
+        when (rec["kind"]) {
+            "report" -> ingestReport(ReportRecord.fromMap(rec))
+            "attestation" -> ingestAttestation(AttestationRecord.fromMap(rec))
+            else -> return
+        }
+        recompute()
+        transport?.broadcast(payload)
+    }
+
+    @Synchronized
+    override fun snapshot(): List<ByteArray> {
+        val out = ArrayList<ByteArray>()
+        for (r in reports.values) envelope(r.toMap(), r.authorId)?.let { out.add(it) }
+        for (list in attestations.values) for (a in list) envelope(a.toMap(), a.claimerId)?.let { out.add(it) }
+        return out
+    }
+
+    private fun envelope(recMap: Map<String, Any?>, authorId: String): ByteArray? {
+        val pub = identities[authorId] ?: return null
+        return CanonicalJson.bytes(mapOf("pub" to Crypto.base64urlEncode(pub), "rec" to recMap))
+    }
+
+    // ---- ingestion (signature-verified before storage) ----
+
     private fun ingestReport(r: ReportRecord) {
         if (!Crypto.verify(r.toMap(), identities[r.authorId] ?: return)) return
         reports[r.id] = r
+        seen.add(r.contentHash)
     }
 
     private fun ingestAttestation(a: AttestationRecord) {
         if (!Crypto.verify(a.toMap(), identities[a.claimerId] ?: return)) return
         attestations.getOrPut(a.targetReportId) { mutableListOf() }.add(a)
+        seen.add(a.contentHash)
     }
 
     private fun recompute() {

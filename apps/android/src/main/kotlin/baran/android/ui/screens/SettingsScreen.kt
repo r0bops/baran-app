@@ -24,6 +24,7 @@ fun SettingsScreen(store: MeshStore) {
     var lowLiteracy by remember { mutableStateOf(false) }
     var bridge by remember { mutableStateOf(false) }
     val signals by store.signals.collectAsState()
+    val peers by store.peers.collectAsState()
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Ajustes", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -78,8 +79,12 @@ fun SettingsScreen(store: MeshStore) {
 
         SettingCard("Estado de la malla") {
             Column {
-                Text("Transporte: BLE + Wi-Fi Aware (Ditto en hardware)", fontSize = 12.sp)
-                Text("Pares cercanos: simulados en este build", fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                Text("Transporte: Nearby Connections (BLE + Wi-Fi)", fontSize = 12.sp)
+                Text(
+                    if (peers == 0) "Sin pares cercanos · buscando…" else "Pares cercanos: $peers",
+                    fontSize = 12.sp,
+                    color = if (peers == 0) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.secondary,
+                )
             }
         }
     }
