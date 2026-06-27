@@ -33,5 +33,28 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-      - name: Build baran-core
+      - name: Build baran-core (includes vector + adversarial tests)
         run: ./gradlew :baran-core:build
+
+  security-suite:
+    name: Security — adversarial + functional suites
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build baran-core-ts (required by the backend tests)
+        working-directory: packages/baran-core-ts
+        run: npm install && npm run build
+      - name: Core adversarial suite
+        working-directory: packages/baran-core-ts
+        run: npm run test:security
+      - name: API seam integration test
+        run: node test/integration-test.mjs
+      - name: Backend functional test (auth/RBAC/persistence/bridge)
+        working-directory: packages/baran-api-server
+        run: npm test
+      - name: Backend adversarial suite
+        working-directory: packages/baran-api-server
+        run: npm run test:security

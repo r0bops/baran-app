@@ -7,7 +7,8 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --loader ts-node/esm test/vector-test.ts"
+    "test": "node --loader ts-node/esm test/vector-test.ts",
+    "test:security": "node --loader ts-node/esm test/security-test.ts"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
