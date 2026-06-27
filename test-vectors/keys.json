@@ -1,0 +1,27 @@
+{
+  "alice": {
+    "seed_hex": "1111111111111111111111111111111111111111111111111111111111111111",
+    "public_key_b64u": "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc",
+    "device_id": "ELpoLIrRNROXHotW"
+  },
+  "bob": {
+    "seed_hex": "2222222222222222222222222222222222222222222222222222222222222222",
+    "public_key_b64u": "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA",
+    "device_id": "EyW4UMKHGRbq4gPw"
+  },
+  "carol": {
+    "seed_hex": "3333333333333333333333333333333333333333333333333333333333333333",
+    "public_key_b64u": "F8t5-ytBIPKx7GXkGY1uCLKOgT_rAeSkAIObheGAgM4",
+    "device_id": "bI-GB9vocHemKimQ"
+  },
+  "dora": {
+    "seed_hex": "4444444444444444444444444444444444444444444444444444444444444444",
+    "public_key_b64u": "11l5O7wTooGagnx2rbb7qKSa7gB_SfLQmS2ZuCWtLEg",
+    "device_id": "sUcFiI9KaDkaCapZ"
+  },
+  "mallory": {
+    "seed_hex": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "public_key_b64u": "gUci3nHFsU50jf8yKuf3xBXO5Vh2ZJUpLNbEwKap3yg",
+    "device_id": "ZMUp-h2VF1J1cGwQ"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": "baran-v1-phase0",
+  "generated_by": "tools/gen-vectors.js (zero-dep Node reference impl)",
+  "canonicalization": "deterministic JSON, recursively sorted keys, compact, UTF-8, integers only",
+  "signature_alg": "Ed25519 over canonical(record \\ {sig})",
+  "content_hash_alg": "SHA-256 hex of the same canonical bytes (v1; spec target BLAKE3)",
+  "files": [
+    "keys.json",
+    "crypto-vectors.json",
+    "fold-vectors.json",
+    "clock-vectors.json"
+  ],
+  "self_check": {
+    "assertions": 13,
+    "all_passed": true
+  },
+  "contract_required": "Kotlin baran-core and TypeScript baran-core-ts MUST reproduce every signature, content_hash, and fold \"expected\" output exactly."
+}

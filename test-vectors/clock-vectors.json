@@ -1,0 +1,23 @@
+{
+  "rule": "Sort key = (author_id, author_seq, hlc_counter). wall_ms is display-only and MUST NOT gate replication or expiry. P0/P1 are always accepted regardless of author clock skew.",
+  "cases": [
+    {
+      "name": "causal_order_same_author",
+      "records": [
+        "ELpoLIrRNROXHotW:1",
+        "ELpoLIrRNROXHotW:2"
+      ],
+      "expected_order": [
+        "ELpoLIrRNROXHotW:1",
+        "ELpoLIrRNROXHotW:2"
+      ],
+      "by": "(author_id, author_seq)"
+    },
+    {
+      "name": "p0_future_clock_not_suppressed",
+      "prio": 0,
+      "expected": "ACCEPTED + replicated (P0 is never future-rejected); ordered by author_seq, not wall_ms",
+      "note": "a skewed author clock cannot suppress a life-safety SOS"
+    }
+  ]
+}

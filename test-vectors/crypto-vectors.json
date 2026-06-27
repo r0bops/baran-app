@@ -1,0 +1,87 @@
+{
+  "canonicalization": "deterministic JSON, recursively sorted keys, compact, UTF-8, integers only",
+  "signature_alg": "Ed25519 over canonical(record \\ {sig})",
+  "content_hash_alg": "SHA-256 hex of the same canonical bytes (v1; spec target BLAKE3)",
+  "cases": [
+    {
+      "name": "valid_signed_sos",
+      "record": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "expect_verify": true,
+      "canonical_bytes_utf8": "{\"author_id\":\"ELpoLIrRNROXHotW\",\"author_seq\":1,\"created_wall_ms\":1750000001000,\"hlc\":\"1750000001000.0.ELpoLIrRNROXHotW\",\"id\":\"ELpoLIrRNROXHotW:1\",\"kind\":\"report\",\"payload\":{\"count\":2,\"need\":[\"extraction\"],\"note\":\"dos atrapados, edificio azul\",\"plus_code\":\"77GR2J4C+9P\",\"severity\":\"critical\"},\"prio\":0,\"schema_version\":1,\"type\":\"sos\"}"
+    },
+    {
+      "name": "tampered_payload",
+      "record": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 99,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "expect_verify": false
+    },
+    {
+      "name": "wrong_key",
+      "record": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "verify_against": "bob",
+      "expect_verify": false
+    }
+  ]
+}

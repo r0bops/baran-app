@@ -1,0 +1,630 @@
+{
+  "tiers": {
+    "reported": 1,
+    "corroborated": 2,
+    "on_site": 3,
+    "device_confirmed": 4,
+    "self_confirmed": 5
+  },
+  "scenarios": [
+    {
+      "name": "S1_reported",
+      "note": "lone signed SOS -> Reported",
+      "subject_device_id": null,
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "attestations": [],
+      "expected": {
+        "tier": 1,
+        "tierName": "reported",
+        "verified": false,
+        "disputed": false,
+        "location_verified": false
+      }
+    },
+    {
+      "name": "S2_corroborated",
+      "note": "two independent keys corroborate -> Corroborated",
+      "subject_device_id": null,
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "EyW4UMKHGRbq4gPw:a:1",
+          "claimer_id": "EyW4UMKHGRbq4gPw",
+          "claimer_seq": 1,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "corroborate",
+          "fact": "still_needs_help",
+          "hlc": "1750000101000.0.EyW4UMKHGRbq4gPw",
+          "prio": 0,
+          "content_hash": "c3143ab8a1a199accab482b03ae8fbf65eed1f195dc4f99d18e3de9024a46b50",
+          "sig": "hfwYAFQO37RTVGtzbaT1ZKxKRLL5hT3_C4NQJvhljORjc3sCKwFquPuLK9cmc2kwGoC35u1Dxw3bWnnw02LcCg"
+        },
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "bI-GB9vocHemKimQ:a:1",
+          "claimer_id": "bI-GB9vocHemKimQ",
+          "claimer_seq": 1,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "corroborate",
+          "fact": "still_needs_help",
+          "hlc": "1750000101000.0.bI-GB9vocHemKimQ",
+          "prio": 0,
+          "content_hash": "fb575d849cc32172e7abf9ee0d6c848e8f3ac18e246dac0e1d17149d5e2f2883",
+          "sig": "JgPbw0dl1SH36BiAw0W7Igg9E3QYRhiXkO68BSWhE0fL2n9UuzAEd2V_j44VOELDqOAaM4CzBq-A6dg1VFpmBA"
+        }
+      ],
+      "expected": {
+        "tier": 2,
+        "tierName": "corroborated",
+        "verified": false,
+        "disputed": false,
+        "location_verified": false
+      }
+    },
+    {
+      "name": "S3_on_site",
+      "note": "one valid on-site proximity proof -> On-site",
+      "subject_device_id": null,
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "bI-GB9vocHemKimQ:a:2",
+          "claimer_id": "bI-GB9vocHemKimQ",
+          "claimer_seq": 2,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "on_site",
+          "fact": "still_needs_help",
+          "hlc": "1750000102000.0.bI-GB9vocHemKimQ",
+          "prio": 0,
+          "proof": {
+            "type": "gps",
+            "match": true,
+            "plus_code8": "77GR2J4C"
+          },
+          "content_hash": "26890c4de9e61e75c9da8ca0e2a61b5b0f6d772288994503e1b3a5c6ac760d74",
+          "sig": "6Ra2OTr1w9w6OHg2Tq1Cqs1gDKB5ds2A3zjlPGshc9MmbarJhGf8P-vgqGXki4xvKCF0ZGh_1t4kjgwweKmNCw"
+        }
+      ],
+      "expected": {
+        "tier": 3,
+        "tierName": "on_site",
+        "verified": false,
+        "disputed": false,
+        "location_verified": false
+      }
+    },
+    {
+      "name": "S4a_device_confirmed_subject_anchored",
+      "note": "subject signs its OWN cell (subject-anchored) -> Device-confirmed, location_verified=true",
+      "subject_device_id": "sUcFiI9KaDkaCapZ",
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:9",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 9,
+        "type": "missing_person",
+        "prio": 0,
+        "created_wall_ms": 1750000009000,
+        "hlc": "1750000009000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "name": "Dora",
+          "last_seen": "liceo"
+        },
+        "subject_id": "sUcFiI9KaDkaCapZ",
+        "content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+        "sig": "pxBwaxf0b4xNSAsOoSKr-ALmDnZrWGPq_eEz_mi_JJdN77w4z4YTXrzdI_abdxoR_GpS-mN9wi8KRAwMQ3IRCg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "EyW4UMKHGRbq4gPw:a:5",
+          "claimer_id": "EyW4UMKHGRbq4gPw",
+          "claimer_seq": 5,
+          "target_report_id": "ELpoLIrRNROXHotW:9",
+          "target_content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+          "att_type": "device_confirm",
+          "fact": "present",
+          "hlc": "1750000105000.0.EyW4UMKHGRbq4gPw",
+          "prio": 0,
+          "proof": {
+            "type": "ble_encounter_challenge",
+            "own_plus_code8": "77GR2J4C",
+            "response_payload": {
+              "subject_id": "sUcFiI9KaDkaCapZ",
+              "attestor_id": "EyW4UMKHGRbq4gPw",
+              "challenge_nonce": "RXlXNFVNS0hHUmJxNGdQdy01LW5vbmNlLWFhYWE",
+              "attestor_plus_code": "77GR2J4C",
+              "subject_rssi": -68,
+              "timestamp_ms": 1,
+              "timestamp_response_ms": 1
+            },
+            "subject_sig": "VJ2AxiK_kzkFktwB1O4T1ZeF0mS-EEiUPocZoUJDUplee-iMjqOfk2uwtY_wvr1F0bYj6Vv5vu14vZz9qEiJDg"
+          },
+          "content_hash": "d3071809e72dc877d89bcb1946eb34b9751b1d35b302dc85a0e74db1be1f3c2b",
+          "sig": "gGrNBqn_1by5Fk7_PUJgeGaqenk0_Op0jY_6om1fo5dXJQOeRbnLvCZ36tc5jbZJDnJkmEEZORflCOlThkg9Bg"
+        }
+      ],
+      "expected": {
+        "tier": 4,
+        "tierName": "device_confirmed",
+        "verified": false,
+        "disputed": false,
+        "location_verified": true
+      }
+    },
+    {
+      "name": "S4b_presence_only_single_attestor",
+      "note": "one attestor, subject did NOT anchor location -> presence only, location_verified=false (capped at On-site)",
+      "subject_device_id": "sUcFiI9KaDkaCapZ",
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:9",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 9,
+        "type": "missing_person",
+        "prio": 0,
+        "created_wall_ms": 1750000009000,
+        "hlc": "1750000009000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "name": "Dora",
+          "last_seen": "liceo"
+        },
+        "subject_id": "sUcFiI9KaDkaCapZ",
+        "content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+        "sig": "pxBwaxf0b4xNSAsOoSKr-ALmDnZrWGPq_eEz_mi_JJdN77w4z4YTXrzdI_abdxoR_GpS-mN9wi8KRAwMQ3IRCg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "EyW4UMKHGRbq4gPw:a:6",
+          "claimer_id": "EyW4UMKHGRbq4gPw",
+          "claimer_seq": 6,
+          "target_report_id": "ELpoLIrRNROXHotW:9",
+          "target_content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+          "att_type": "device_confirm",
+          "fact": "present",
+          "hlc": "1750000106000.0.EyW4UMKHGRbq4gPw",
+          "prio": 0,
+          "proof": {
+            "type": "ble_encounter_challenge",
+            "own_plus_code8": "77GR2J4C",
+            "response_payload": {
+              "subject_id": "sUcFiI9KaDkaCapZ",
+              "attestor_id": "EyW4UMKHGRbq4gPw",
+              "challenge_nonce": "RXlXNFVNS0hHUmJxNGdQdy02LW5vbmNlLWFhYWE",
+              "attestor_plus_code": "",
+              "subject_rssi": -68,
+              "timestamp_ms": 1,
+              "timestamp_response_ms": 1
+            },
+            "subject_sig": "x6Y4ThbETiEMETmagxVevF2oiurTQAiN8XLgQ8QLOGyF89-QRQ92uqQqQF-Yzan0Ul8oBmJxJOlnA8Zxr9pgBw"
+          },
+          "content_hash": "a3324671bf46b5056ac2adc7f1097333bdca480f6e29684f14e5f9831aad2d9f",
+          "sig": "ACpjyxzaNR0hJK-3hU8qW7uiUWwa10nuDgqyayj0hIoF8DTXrjhMCtgPhqgOU-gWfN3SMVeK4my0Y9T_faDLCw"
+        }
+      ],
+      "expected": {
+        "tier": 3,
+        "tierName": "on_site",
+        "verified": false,
+        "disputed": false,
+        "location_verified": false
+      }
+    },
+    {
+      "name": "S4c_device_confirmed_two_attestors",
+      "note": ">=2 independent attestors agree on the same cell -> Device-confirmed, location_verified=true",
+      "subject_device_id": "sUcFiI9KaDkaCapZ",
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:9",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 9,
+        "type": "missing_person",
+        "prio": 0,
+        "created_wall_ms": 1750000009000,
+        "hlc": "1750000009000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "name": "Dora",
+          "last_seen": "liceo"
+        },
+        "subject_id": "sUcFiI9KaDkaCapZ",
+        "content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+        "sig": "pxBwaxf0b4xNSAsOoSKr-ALmDnZrWGPq_eEz_mi_JJdN77w4z4YTXrzdI_abdxoR_GpS-mN9wi8KRAwMQ3IRCg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "EyW4UMKHGRbq4gPw:a:7",
+          "claimer_id": "EyW4UMKHGRbq4gPw",
+          "claimer_seq": 7,
+          "target_report_id": "ELpoLIrRNROXHotW:9",
+          "target_content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+          "att_type": "device_confirm",
+          "fact": "present",
+          "hlc": "1750000107000.0.EyW4UMKHGRbq4gPw",
+          "prio": 0,
+          "proof": {
+            "type": "ble_encounter_challenge",
+            "own_plus_code8": "77GR2J4C",
+            "response_payload": {
+              "subject_id": "sUcFiI9KaDkaCapZ",
+              "attestor_id": "EyW4UMKHGRbq4gPw",
+              "challenge_nonce": "RXlXNFVNS0hHUmJxNGdQdy03LW5vbmNlLWFhYWE",
+              "attestor_plus_code": "",
+              "subject_rssi": -68,
+              "timestamp_ms": 1,
+              "timestamp_response_ms": 1
+            },
+            "subject_sig": "shXG_MKta65sgDxrjcdNKEGF7_REmHfB59undOHZl3zSM0hsZ13yqa1IIqIsatVZduc_ZBUK2JMzK5vCU0UJAg"
+          },
+          "content_hash": "69c6acb2e74eeaa91cd4f4e2124d5bbd2fd71fe8b058812b732e8643d203c2a2",
+          "sig": "p9Tkz9ArqaMK6ttbyOa8QPGmzWlEwgVToL2cyuX0UhsupUVwdf_DRAyR5TGetIe4_-2sUhZAYviIidFMNuqCDQ"
+        },
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "bI-GB9vocHemKimQ:a:7",
+          "claimer_id": "bI-GB9vocHemKimQ",
+          "claimer_seq": 7,
+          "target_report_id": "ELpoLIrRNROXHotW:9",
+          "target_content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+          "att_type": "device_confirm",
+          "fact": "present",
+          "hlc": "1750000107000.0.bI-GB9vocHemKimQ",
+          "prio": 0,
+          "proof": {
+            "type": "ble_encounter_challenge",
+            "own_plus_code8": "77GR2J4C",
+            "response_payload": {
+              "subject_id": "sUcFiI9KaDkaCapZ",
+              "attestor_id": "bI-GB9vocHemKimQ",
+              "challenge_nonce": "YkktR0I5dm9jSGVtS2ltUS03LW5vbmNlLWFhYWE",
+              "attestor_plus_code": "",
+              "subject_rssi": -68,
+              "timestamp_ms": 1,
+              "timestamp_response_ms": 1
+            },
+            "subject_sig": "dhgGn90MjBMV_PO4iyOphCKqie7jgMFUqIis5udmNBdz0TdDg06aieulMYuW-osprYkwNBVp1GvyMv7XDecZDw"
+          },
+          "content_hash": "1c78f0a9a7673ae6c58269d8505c341e7754b91d4deb2f5fd3e63e73c131d25a",
+          "sig": "Rg9jS8AeHl70hL5l3K0RbqZZNOnn3VKImybpodkLTibBEddZNeipAQ4PCuKlxauJIh32EKqZhtRkMU_DQgP6BA"
+        }
+      ],
+      "expected": {
+        "tier": 4,
+        "tierName": "device_confirmed",
+        "verified": false,
+        "disputed": false,
+        "location_verified": true
+      }
+    },
+    {
+      "name": "S4d_forged_subject_sig_rejected",
+      "note": "attacker forges device_confirm with bogus subject_sig -> rejected, stays Reported",
+      "subject_device_id": "sUcFiI9KaDkaCapZ",
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:9",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 9,
+        "type": "missing_person",
+        "prio": 0,
+        "created_wall_ms": 1750000009000,
+        "hlc": "1750000009000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "name": "Dora",
+          "last_seen": "liceo"
+        },
+        "subject_id": "sUcFiI9KaDkaCapZ",
+        "content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+        "sig": "pxBwaxf0b4xNSAsOoSKr-ALmDnZrWGPq_eEz_mi_JJdN77w4z4YTXrzdI_abdxoR_GpS-mN9wi8KRAwMQ3IRCg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "ZMUp-h2VF1J1cGwQ:a:8",
+          "claimer_id": "ZMUp-h2VF1J1cGwQ",
+          "claimer_seq": 8,
+          "target_report_id": "ELpoLIrRNROXHotW:9",
+          "target_content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+          "att_type": "device_confirm",
+          "fact": "present",
+          "hlc": "1750000108000.0.ZMUp-h2VF1J1cGwQ",
+          "prio": 0,
+          "proof": {
+            "type": "ble_encounter_challenge",
+            "own_plus_code8": "77GR2J4C",
+            "response_payload": {
+              "subject_id": "sUcFiI9KaDkaCapZ",
+              "attestor_id": "ZMUp-h2VF1J1cGwQ",
+              "challenge_nonce": "Wk1VcC1oMlZGMUoxY0d3US04LW5vbmNlLWFhYWE",
+              "attestor_plus_code": "77GR2J4C",
+              "subject_rssi": -68,
+              "timestamp_ms": 1,
+              "timestamp_response_ms": 1
+            },
+            "subject_sig": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBw"
+          },
+          "content_hash": "df3ceedaa9169779e5e592264829111aabcfae683ea81f58e08ba7afe0a0048d",
+          "sig": "a3UytJPEbukMu273soBKPjhi5Kte0Lb3ZKzsDgbLXBWR5CwZ8o152za6lXl4XT3F4E-1pRNl6zXGNk2s8GT-BQ"
+        }
+      ],
+      "expected": {
+        "tier": 1,
+        "tierName": "reported",
+        "verified": false,
+        "disputed": false,
+        "location_verified": false
+      }
+    },
+    {
+      "name": "S5_self_confirmed",
+      "note": "the subject's own device signs self_confirm -> Self-confirmed",
+      "subject_device_id": "sUcFiI9KaDkaCapZ",
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:9",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 9,
+        "type": "missing_person",
+        "prio": 0,
+        "created_wall_ms": 1750000009000,
+        "hlc": "1750000009000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "name": "Dora",
+          "last_seen": "liceo"
+        },
+        "subject_id": "sUcFiI9KaDkaCapZ",
+        "content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+        "sig": "pxBwaxf0b4xNSAsOoSKr-ALmDnZrWGPq_eEz_mi_JJdN77w4z4YTXrzdI_abdxoR_GpS-mN9wi8KRAwMQ3IRCg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "sUcFiI9KaDkaCapZ:a:1",
+          "claimer_id": "sUcFiI9KaDkaCapZ",
+          "claimer_seq": 1,
+          "target_report_id": "ELpoLIrRNROXHotW:9",
+          "target_content_hash": "a99bdd5195962d01e43a38a9455b7115f96abbc77a8487a4611e35077e9aea8c",
+          "att_type": "self_confirm",
+          "fact": "found_safe",
+          "hlc": "1750000101000.0.sUcFiI9KaDkaCapZ",
+          "prio": 0,
+          "content_hash": "1512d0e76e0f4c349f6f5a82d6a3498763b5add0cf70e660f78ebaa99d74a31e",
+          "sig": "ZNbCgCjBI-n43YKds7OfDZZJx9GMolYqNJ-DK8hEbSpoGzkqgTykMpO3E8YUp9ye1dUHc18pYX-WkHSZbMmMCQ"
+        }
+      ],
+      "expected": {
+        "tier": 5,
+        "tierName": "self_confirmed",
+        "verified": false,
+        "disputed": false,
+        "location_verified": true
+      }
+    },
+    {
+      "name": "S6_disputed",
+      "note": "two independent on-site attestations contradict -> On-site + Disputed",
+      "subject_device_id": null,
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "EyW4UMKHGRbq4gPw:a:3",
+          "claimer_id": "EyW4UMKHGRbq4gPw",
+          "claimer_seq": 3,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "on_site",
+          "fact": "found_safe",
+          "hlc": "1750000103000.0.EyW4UMKHGRbq4gPw",
+          "prio": 0,
+          "proof": {
+            "type": "gps",
+            "match": true,
+            "plus_code8": "77GR2J4C"
+          },
+          "content_hash": "7248788342eeadf9c7881e40247ef7e35020f25ad0d94b136a252cc59cdb1d70",
+          "sig": "6YjmLu_POfq6_dznT85WC59D3FlgtDLxx34nfwzhq361Iuye80f_w7kp0LhaCSJHqh10T3mks1pNGyf2T9VbDQ"
+        },
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "bI-GB9vocHemKimQ:a:3",
+          "claimer_id": "bI-GB9vocHemKimQ",
+          "claimer_seq": 3,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "on_site",
+          "fact": "still_needs_help",
+          "hlc": "1750000103000.0.bI-GB9vocHemKimQ",
+          "prio": 0,
+          "proof": {
+            "type": "gps",
+            "match": true,
+            "plus_code8": "77GR2J4C"
+          },
+          "content_hash": "abecadf75b3e134a571309cda3d36e401eb3d11b0feff864a56b0a64d28e1eea",
+          "sig": "vAJqJX--jZwjXMINNyoOb_h2ntU8-hyaxj0BGQYJzvhHTbNiKfkWRXjdZ-ROexXJODzcsf9cquJSI7pxACgoBg"
+        }
+      ],
+      "expected": {
+        "tier": 3,
+        "tierName": "on_site",
+        "verified": false,
+        "disputed": true,
+        "location_verified": false
+      }
+    },
+    {
+      "name": "S7_sybil_cannot_game",
+      "note": "one key corroborating twice = 1 distinct key -> stays Reported (Sybil-flat: count cannot game the tier)",
+      "subject_device_id": null,
+      "report": {
+        "schema_version": 1,
+        "kind": "report",
+        "id": "ELpoLIrRNROXHotW:1",
+        "author_id": "ELpoLIrRNROXHotW",
+        "author_seq": 1,
+        "type": "sos",
+        "prio": 0,
+        "created_wall_ms": 1750000001000,
+        "hlc": "1750000001000.0.ELpoLIrRNROXHotW",
+        "payload": {
+          "severity": "critical",
+          "need": [
+            "extraction"
+          ],
+          "note": "dos atrapados, edificio azul",
+          "count": 2,
+          "plus_code": "77GR2J4C+9P"
+        },
+        "content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+        "sig": "vWabunlUYgzaIh9NK13dFFpKfBNVno4VyGtXKFdBw6VgZFwL7h6U07TNI7nmG0Yz2bWM1mzCMynsPc57civGDg"
+      },
+      "attestations": [
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "ZMUp-h2VF1J1cGwQ:a:1",
+          "claimer_id": "ZMUp-h2VF1J1cGwQ",
+          "claimer_seq": 1,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "corroborate",
+          "fact": "still_needs_help",
+          "hlc": "1750000101000.0.ZMUp-h2VF1J1cGwQ",
+          "prio": 0,
+          "content_hash": "dbb143a6a3c0fbcc0499e69127f823f012b9a7b2511ef26389b0e6f5ad2ad8ed",
+          "sig": "ucb0ZWh0japXKRwFJ1xVEWudn6t3jNK3tndfwMs_AuAxxKfI_8ZtuILrO1zYTLOUaAPDopd1YgF1godiP0yeBA"
+        },
+        {
+          "schema_version": 1,
+          "kind": "attestation",
+          "id": "ZMUp-h2VF1J1cGwQ:a:2",
+          "claimer_id": "ZMUp-h2VF1J1cGwQ",
+          "claimer_seq": 2,
+          "target_report_id": "ELpoLIrRNROXHotW:1",
+          "target_content_hash": "dc8c67df8799a59af99ec9ec14e22b3b02b09359f96ca40234dc523c565681fd",
+          "att_type": "corroborate",
+          "fact": "still_needs_help",
+          "hlc": "1750000102000.0.ZMUp-h2VF1J1cGwQ",
+          "prio": 0,
+          "content_hash": "053504580eec0089fd2fad6359c9b9d461819a91f57e15b558057a506a8600a3",
+          "sig": "ft5p3b90cDvtU18te4w2cLoKN1yWVI-qs1bTDWN4gjr8O85jau9rw50Jdh3IxWIoXqtf6mVoo2uCHRqwf7riBA"
+        }
+      ],
+      "expected": {
+        "tier": 1,
+        "tierName": "reported",
+        "verified": false,
+        "disputed": false,
+        "location_verified": false
+      }
+    }
+  ]
+}
