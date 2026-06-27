@@ -1,0 +1,85 @@
+name: Desktop Build (Tauri 2)
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - 'apps/coordinator-desktop/**'
+      - 'apps/coordinator-web/**'
+  workflow_dispatch:
+
+jobs:
+  desktop:
+    name: Tauri Desktop — ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: macos-latest
+            target: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/coordinator-desktop/src-tauri
+
+      - name: Install Linux system deps
+        if: matrix.platform.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libsecret-1-dev
+
+      - name: Build shared frontend
+        working-directory: apps/coordinator-web
+        run: npm install && npm run build
+
+      - name: Install desktop deps
+        working-directory: apps/coordinator-desktop
+        run: npm install
+
+      - name: Build + sign Tauri bundle
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: apps/coordinator-desktop
+          args: --target ${{ matrix.platform.target }}
+          # Publish signed installers to a draft GitHub Release on tag pushes.
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: 'Baran Coordinación ${{ github.ref_name }}'
+          releaseDraft: true
+        env:
+          # --- Updater signing (Tauri) ---
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # --- macOS code signing + notarization ---
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # --- Windows code signing (cert thumbprint configured in tauri.conf.json) ---
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload installers (non-tag builds)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baran-desktop-${{ matrix.platform.os }}
+          path: apps/coordinator-desktop/src-tauri/target/${{ matrix.platform.target }}/release/bundle/
+          if-no-files-found: ignore

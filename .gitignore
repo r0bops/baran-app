@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Gradle / Kotlin
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# Rust / Tauri
+target/
+
+# API server runtime data
+packages/baran-api-server/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp

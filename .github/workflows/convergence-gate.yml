@@ -1,0 +1,63 @@
+name: Convergence Gate — Kotlin ↔ TypeScript Test Vectors
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/baran-core/**'
+      - 'packages/baran-core-ts/**'
+      - 'packages/baran-api-stub/**'
+      - 'test-vectors/**'
+  pull_request:
+    branches: [main]
+
+jobs:
+  typescript-vectors:
+    name: TypeScript — Vector Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/baran-core-ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: node --loader ts-node/esm test/vector-test.ts
+      - name: Assert exit code
+        run: node -e "process.exit(0)"
+
+  kotlin-vectors:
+    name: Kotlin — Vector Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Build & test
+        run: ./gradlew :baran-core:build
+      - name: Run vector test
+        run: |
+          java -cp packages/baran-core/build/libs/*:packages/baran-core/build/classes/kotlin/test:$(find ~/.gradle -name 'gson-*.jar' | head -1):$(find ~/.gradle -name 'bcprov-*.jar' | head -1):$(find ~/.gradle -name 'kotlin-stdlib-*.jar' | head -1):$(find ~/.gradle -name 'kotlin-stdlib-jdk8-*.jar' | head -1) baran.VectorTest
+
+  convergence-report:
+    name: Convergence Gate — REPORT
+    needs: [typescript-vectors, kotlin-vectors]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check gate
+        run: |
+          echo "## Baran Phase 0 — Cross-Language Convergence" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.typescript-vectors.result }}" = "success" ] && [ "${{ needs.kotlin-vectors.result }}" = "success" ]; then
+            echo "✅ **PASS** — Kotlin and TypeScript reproduce all test vectors byte-for-byte" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAIL** — Vector mismatch. Do not merge." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
