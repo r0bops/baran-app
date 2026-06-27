@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Baran</string>
+    <string name="tab_map">Mapa</string>
+    <string name="tab_signals">Señales</string>
+    <string name="tab_create">Crear</string>
+    <string name="tab_detail">Detalle</string>
+    <string name="tab_profile">Yo</string>
+    <string name="mesh_active">Red activa</string>
+    <string name="mesh_scanning">Buscando dispositivos...</string>
+    <string name="tier_reported">reportado</string>
+    <string name="tier_corroborated">corroborado</string>
+    <string name="tier_on_site">en sitio</string>
+    <string name="tier_device_confirmed">confirmado por dispositivo</string>
+    <string name="tier_self_confirmed">autoconfirmado</string>
+    <string name="reach_in_mesh">en la red</string>
+    <string name="reach_bridged">llegó a internet</string>
+    <string name="reach_anchored">anclado</string>
+    <string name="saved">guardado</string>
+    <string name="will_propagate">se propagará</string>
+</resources>
