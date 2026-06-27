@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/crates/tauri-cli/schema.json",
+  "productName": "Baran Coordinación",
+  "version": "0.1.0",
+  "identifier": "org.baran.coordinator-desktop",
+  "build": {
+    "frontendDist": "../coordinator-web/dist",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "cd ../coordinator-web && npm run build",
+    "beforeDevCommand": "cd ../coordinator-web && npm run dev"
+  },
+  "app": {
+    "title": "Baran · Coordinación de Rescate",
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Baran · Coordinación",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:* https://api.baran.rescue; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.maptiler.com"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "rpm", "appimage", "msi", "nsis", "dmg"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "copyright": "Baran Rescue Project",
+    "category": "Utility"
+  },
+  "plugins": {
+    "store": {
+      "filename": "baran-coordinator.bin"
+    }
+  }
+}
