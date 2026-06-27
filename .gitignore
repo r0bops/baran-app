@@ -12,6 +12,16 @@ npm-debug.log*
 build/
 !gradle/wrapper/gradle-wrapper.jar
 local.properties
+.kotlin/
+
+# Android Studio / Android build
+*.iml
+.cxx/
+captures/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
 
 # Rust / Tauri
 target/

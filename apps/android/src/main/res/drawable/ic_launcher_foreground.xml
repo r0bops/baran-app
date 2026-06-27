@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- mesh links -->
+    <path
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54,54 L54,30 M54,54 L34,72 M54,54 L74,72" />
+    <!-- nodes: a central peer and three neighbours -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M54,54 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 M54,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M34,72 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0 M74,72 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+</vector>
