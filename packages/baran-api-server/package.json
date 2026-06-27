@@ -1,0 +1,12 @@
+{
+  "name": "baran-api-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Baran Phase 2 real API backend — REST + WebSocket, auth/RBAC, durable store, pinned bridge receipts",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "dev": "node --watch src/server.mjs",
+    "test": "node test/server-test.mjs"
+  }
+}
