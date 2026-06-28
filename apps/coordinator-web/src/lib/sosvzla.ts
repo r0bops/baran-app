@@ -53,14 +53,11 @@ export async function fetchExternalReports(signal?: AbortSignal): Promise<Extern
     }));
 }
 
+// These throw on failure so the cache layer (fetchCached) can fall back to local data.
 export async function fetchPersonStats(signal?: AbortSignal): Promise<PersonStats | null> {
-  try {
-    const res = await fetch(`${SOS_BASE}/api/persons/stats`, { signal });
-    if (!res.ok) return null;
-    return (await res.json()) as PersonStats;
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${SOS_BASE}/api/persons/stats`, { signal });
+  if (!res.ok) throw new Error(`persons/stats ${res.status}`);
+  return (await res.json()) as PersonStats;
 }
 
 export interface DamageReport {
@@ -86,23 +83,15 @@ export interface NewsItem {
 }
 
 export async function fetchDamageRecent(signal?: AbortSignal): Promise<DamageReport[]> {
-  try {
-    const res = await fetch(`${SOS_BASE}/api/damage/recent`, { signal });
-    if (!res.ok) return [];
-    return (await res.json()) as DamageReport[];
-  } catch {
-    return [];
-  }
+  const res = await fetch(`${SOS_BASE}/api/damage/recent`, { signal });
+  if (!res.ok) throw new Error(`damage/recent ${res.status}`);
+  return (await res.json()) as DamageReport[];
 }
 
 export async function fetchNews(signal?: AbortSignal): Promise<NewsItem[]> {
-  try {
-    const res = await fetch(`${SOS_BASE}/api/news`, { signal });
-    if (!res.ok) return [];
-    return (await res.json()) as NewsItem[];
-  } catch {
-    return [];
-  }
+  const res = await fetch(`${SOS_BASE}/api/news`, { signal });
+  if (!res.ok) throw new Error(`news ${res.status}`);
+  return (await res.json()) as NewsItem[];
 }
 
 export const SOS_ATTRIBUTION = 'Fuente pública · SOS Venezuela 2026';

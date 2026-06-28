@@ -1,6 +1,11 @@
 // The overlay-source list: one toggle per external API, with a colour swatch and a
-// live point count. Adding another API = one more entry in OVERLAY_META.
-import type { OverlayMeta } from '../lib/overlays';
+// live point count. Sources come from config/sources.ts.
+interface SourceMeta {
+  id: string;
+  label: string;
+  swatch: string;
+  attribution: string;
+}
 
 export function LayersControl({
   sources,
@@ -8,7 +13,7 @@ export function LayersControl({
   counts,
   onToggle,
 }: {
-  sources: OverlayMeta[];
+  sources: SourceMeta[];
   enabled: Record<string, boolean>;
   counts: Record<string, number>;
   onToggle: (id: string, on: boolean) => void;

@@ -10,7 +10,11 @@ import {
 } from './lib/api';
 import { ensureAuth, initCoordinator } from './lib/coordinator';
 import { toCSV, toGeoJSON, downloadFile } from './lib/export';
-import { fetchExternalReports, fetchPersonStats, fetchDamageRecent, fetchNews, type ExternalReport, type PersonStats, type DamageReport, type NewsItem } from './lib/sosvzla';
+import { fetchPersonStats, fetchDamageRecent, fetchNews, type PersonStats, type DamageReport, type NewsItem } from './lib/sosvzla';
+import { fetchCached } from './lib/cache';
+import { SOURCES } from './config/sources';
+import { loadSource, applySourceFilters, toPoints, type NormalizedRecord } from './lib/sourceEngine';
+import type { OverlayPoint } from './lib/overlays';
 import { CommunityPanel } from './components/CommunityPanel';
 import { IncidentList } from './components/IncidentList';
 import { RecordCard, RecordDetail } from './components/RecordCard';
@@ -20,9 +24,8 @@ const MapView = lazy(() => import('./components/MapView').then((m) => ({ default
 import { CoordinatorPanel } from './components/CoordinatorPanel';
 import { AttestationTimeline } from './components/AttestationTimeline';
 import { Filters, DEFAULT_FILTERS, applyFilters, type FilterState } from './components/Filters';
-import { ExternalFilters, DEFAULT_EXT_FILTERS, applyExternalFilters, type ExtFilterState } from './components/ExternalFilters';
-import { OVERLAY_META, reportsToOverlay, loadUsgsQuakes, type OverlayPoint } from './lib/overlays';
 import { LayersControl } from './components/LayersControl';
+import { SourceFilters } from './components/SourceFilters';
 
 type View = 'map' | 'incidents' | 'records';
 
@@ -37,11 +40,15 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [coordId, setCoordId] = useState<string>('');
   const [role, setRole] = useState<string>('');
-  // SOS Venezuela 2026 public feed — external, unsigned, shown as a distinct layer.
-  const [external, setExternal] = useState<ExternalReport[]>([]);
-  const [usgs, setUsgs] = useState<OverlayPoint[]>([]);
-  const [enabledLayers, setEnabledLayers] = useState<Record<string, boolean>>({ sosve_reports: true, usgs_quakes: true });
-  const [extFilters, setExtFilters] = useState<ExtFilterState>(DEFAULT_EXT_FILTERS);
+  // Config-driven overlay sources (see config/sources.ts), cached locally for offline.
+  const [rawBySource, setRawBySource] = useState<Record<string, NormalizedRecord[]>>({});
+  const [enabledLayers, setEnabledLayers] = useState<Record<string, boolean>>(() => {
+    const def: Record<string, boolean> = {};
+    for (const s of SOURCES) def[s.id] = s.enabledByDefault;
+    return { ...def, ...(loadJSON<Record<string, boolean>>('baran.layers') || {}) };
+  });
+  const [filterState, setFilterState] = useState<Record<string, Record<string, string[]>>>(() => loadJSON('baran.filters') || {});
+  const [offlineTs, setOfflineTs] = useState<number | null>(null);
   const [personStats, setPersonStats] = useState<PersonStats | null>(null);
   const [damage, setDamage] = useState<DamageReport[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -90,16 +97,25 @@ export default function App() {
     })();
   }, [loadReports, loadIncidents, flash]);
 
-  // Pull the SOS Venezuela 2026 public feed (best-effort; failures are non-fatal).
+  // Load every configured external source + the SOS-VE panels, cached for offline.
   useEffect(() => {
     const ctrl = new AbortController();
-    fetchExternalReports(ctrl.signal).then(setExternal).catch(() => {});
-    fetchPersonStats(ctrl.signal).then(setPersonStats).catch(() => {});
-    loadUsgsQuakes(ctrl.signal).then(setUsgs).catch(() => {});
-    fetchDamageRecent(ctrl.signal).then(setDamage).catch(() => {});
-    fetchNews(ctrl.signal).then(setNews).catch(() => {});
+    const noteCache = (fromCache: boolean, ts: number | null) => {
+      if (fromCache && ts) setOfflineTs((prev) => Math.max(prev ?? 0, ts));
+    };
+    for (const s of SOURCES) {
+      loadSource(s, ctrl.signal)
+        .then((c) => { setRawBySource((prev) => ({ ...prev, [s.id]: c.data })); noteCache(c.fromCache, c.ts); })
+        .catch(() => {});
+    }
+    fetchCached('sosve:persons', () => fetchPersonStats(ctrl.signal), null).then((c) => { setPersonStats(c.data); noteCache(c.fromCache, c.ts); });
+    fetchCached('sosve:damage', () => fetchDamageRecent(ctrl.signal), []).then((c) => { setDamage(c.data); noteCache(c.fromCache, c.ts); });
+    fetchCached('sosve:news', () => fetchNews(ctrl.signal), []).then((c) => { setNews(c.data); noteCache(c.fromCache, c.ts); });
     return () => ctrl.abort();
   }, []);
+
+  useEffect(() => saveJSON('baran.layers', enabledLayers), [enabledLayers]);
+  useEffect(() => saveJSON('baran.filters', filterState), [filterState]);
 
   useEffect(() => {
     return connectWebSocket(
@@ -117,16 +133,20 @@ export default function App() {
   }, [flash, loadReports, loadIncidents, selectedId, openDetail]);
 
   const filtered = useMemo(() => applyFilters(records, filters), [records, filters]);
-  const filteredExternal = useMemo(() => applyExternalFilters(external, extFilters), [external, extFilters]);
-  const overlayPoints = useMemo(() => {
+  const { overlayPoints, layerCounts } = useMemo(() => {
     const pts: OverlayPoint[] = [];
-    if (enabledLayers.sosve_reports) pts.push(...reportsToOverlay(filteredExternal));
-    if (enabledLayers.usgs_quakes) pts.push(...usgs);
-    return pts;
-  }, [enabledLayers, filteredExternal, usgs]);
-  const layerCounts = useMemo(
-    () => ({ sosve_reports: filteredExternal.length, usgs_quakes: usgs.length }),
-    [filteredExternal, usgs],
+    const counts: Record<string, number> = {};
+    for (const s of SOURCES) {
+      const raw = rawBySource[s.id] || [];
+      const filteredRecs = applySourceFilters(raw, s, filterState[s.id] || {});
+      counts[s.id] = filteredRecs.length;
+      if (enabledLayers[s.id]) pts.push(...toPoints(filteredRecs, s));
+    }
+    return { overlayPoints: pts, layerCounts: counts };
+  }, [rawBySource, enabledLayers, filterState]);
+
+  const activeFilterSources = SOURCES.filter(
+    (s) => enabledLayers[s.id] && (s.filters?.length ?? 0) > 0 && (rawBySource[s.id]?.length ?? 0) > 0,
   );
 
   const onActed = useCallback(
@@ -213,7 +233,7 @@ export default function App() {
         </span>
         <span style={{ color: '#475569' }}>{filtered.length} de {records.length} firmados</span>
         <LayersControl
-          sources={OVERLAY_META}
+          sources={SOURCES}
           enabled={enabledLayers}
           counts={layerCounts}
           onToggle={(id, on) => setEnabledLayers((e) => ({ ...e, [id]: on }))}
@@ -221,13 +241,26 @@ export default function App() {
         {personStats && (
           <span style={{ color: '#475569' }} title="Directorio público de personas">👤 {personStats.missing} buscadas · {personStats.found} halladas</span>
         )}
+        {offlineTs && (
+          <span style={{ color: '#f59e0b' }} title="Mostrando datos en caché local (sin conexión a una fuente)">
+            ● caché {new Date(offlineTs).toLocaleString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
         {(view === 'map' || view === 'records') && <Filters value={filters} onChange={setFilters} />}
       </div>
 
-      {/* SOS-VE feed filter bar (shown when that layer is on, map view) */}
-      {enabledLayers.sosve_reports && centerView === 'map' && external.length > 0 && (
-        <div style={{ padding: '5px 20px', backgroundColor: '#13203a', borderTop: '1px solid #1e293b' }}>
-          <ExternalFilters reports={external} value={extFilters} onChange={setExtFilters} />
+      {/* Per-source filter bars (generated from each source's config) */}
+      {centerView === 'map' && activeFilterSources.length > 0 && (
+        <div style={{ padding: '5px 20px', backgroundColor: '#13203a', borderTop: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {activeFilterSources.map((s) => (
+            <SourceFilters
+              key={s.id}
+              config={s}
+              records={rawBySource[s.id] || []}
+              state={filterState[s.id] || {}}
+              onChange={(st) => setFilterState((prev) => ({ ...prev, [s.id]: st }))}
+            />
+          ))}
         </div>
       )}
 
@@ -269,6 +302,22 @@ function useWide(): boolean {
     return () => window.removeEventListener('resize', onResize);
   }, []);
   return wide;
+}
+
+function loadJSON<T>(key: string): T | null {
+  try {
+    const s = localStorage.getItem(key);
+    return s ? (JSON.parse(s) as T) : null;
+  } catch {
+    return null;
+  }
+}
+function saveJSON(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* ignore quota errors */
+  }
 }
 
 const panel: React.CSSProperties = { backgroundColor: '#0f172a', borderRadius: 10, border: '1px solid #1e293b', overflow: 'hidden', height: '100%' };
