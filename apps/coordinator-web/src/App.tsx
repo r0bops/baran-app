@@ -10,7 +10,8 @@ import {
 } from './lib/api';
 import { ensureAuth, initCoordinator } from './lib/coordinator';
 import { toCSV, toGeoJSON, downloadFile } from './lib/export';
-import { fetchExternalReports, fetchPersonStats, type ExternalReport, type PersonStats } from './lib/sosvzla';
+import { fetchExternalReports, fetchPersonStats, fetchDamageRecent, fetchNews, type ExternalReport, type PersonStats, type DamageReport, type NewsItem } from './lib/sosvzla';
+import { CommunityPanel } from './components/CommunityPanel';
 import { IncidentList } from './components/IncidentList';
 import { RecordCard, RecordDetail } from './components/RecordCard';
 import { BadgeRow } from './components/Badges';
@@ -42,6 +43,8 @@ export default function App() {
   const [enabledLayers, setEnabledLayers] = useState<Record<string, boolean>>({ sosve_reports: true, usgs_quakes: true });
   const [extFilters, setExtFilters] = useState<ExtFilterState>(DEFAULT_EXT_FILTERS);
   const [personStats, setPersonStats] = useState<PersonStats | null>(null);
+  const [damage, setDamage] = useState<DamageReport[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Desktop (Tauri) and wide browsers get a 3-column layout; narrow gets tabs.
   const wide = useWide();
@@ -93,6 +96,8 @@ export default function App() {
     fetchExternalReports(ctrl.signal).then(setExternal).catch(() => {});
     fetchPersonStats(ctrl.signal).then(setPersonStats).catch(() => {});
     loadUsgsQuakes(ctrl.signal).then(setUsgs).catch(() => {});
+    fetchDamageRecent(ctrl.signal).then(setDamage).catch(() => {});
+    fetchNews(ctrl.signal).then(setNews).catch(() => {});
     return () => ctrl.abort();
   }, []);
 
@@ -240,11 +245,7 @@ export default function App() {
           </div>
           <div style={{ ...panel, flex: 1, minWidth: 0, overflow: 'auto', padding: 12 }}>{mapOrRecords}</div>
           <div style={{ ...panel, width: 420, flexShrink: 0, overflow: 'auto' }}>
-            {detail ? detailInner : (
-              <div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>
-                Selecciona una señal para ver su procedencia y responder.
-              </div>
-            )}
+            {detail ? detailInner : <CommunityPanel damage={damage} news={news} />}
           </div>
         </main>
       ) : (

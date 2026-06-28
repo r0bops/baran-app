@@ -63,4 +63,46 @@ export async function fetchPersonStats(signal?: AbortSignal): Promise<PersonStat
   }
 }
 
+export interface DamageReport {
+  id: string;
+  zona: string;
+  municipio: string;
+  building_type: string;
+  note?: string;
+  validations: number;
+  habitable_votes: number;
+  inhabitable_votes: number;
+  uncertain_votes: number;
+  created_at?: string;
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  url: string;
+  source: string;
+  summary?: string;
+  published_at?: string;
+}
+
+export async function fetchDamageRecent(signal?: AbortSignal): Promise<DamageReport[]> {
+  try {
+    const res = await fetch(`${SOS_BASE}/api/damage/recent`, { signal });
+    if (!res.ok) return [];
+    return (await res.json()) as DamageReport[];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchNews(signal?: AbortSignal): Promise<NewsItem[]> {
+  try {
+    const res = await fetch(`${SOS_BASE}/api/news`, { signal });
+    if (!res.ok) return [];
+    return (await res.json()) as NewsItem[];
+  } catch {
+    return [];
+  }
+}
+
 export const SOS_ATTRIBUTION = 'Fuente pública · SOS Venezuela 2026';
