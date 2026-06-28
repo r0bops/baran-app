@@ -77,11 +77,17 @@ export function MapView({
   overlay,
   selectedId,
   onSelect,
+  picking,
+  draft,
+  onPick,
 }: {
   records: BaranRecord[];
   overlay?: OverlayPoint[];
   selectedId?: string | null;
   onSelect: (rec: BaranRecord) => void;
+  picking?: boolean;
+  draft?: { lat: number; lng: number } | null;
+  onPick?: (lat: number, lng: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
@@ -90,9 +96,14 @@ export function MapView({
   const recordsRef = useRef(records);
   const overlayRef = useRef(overlay);
   const onSelectRef = useRef(onSelect);
+  const pickingRef = useRef(picking);
+  const onPickRef = useRef(onPick);
+  const draftMarkerRef = useRef<maplibregl.Marker | null>(null);
   recordsRef.current = records;
   overlayRef.current = overlay;
   onSelectRef.current = onSelect;
+  pickingRef.current = picking;
+  onPickRef.current = onPick;
 
   function fitToCoords(map: MlMap, coords: [number, number][]) {
     if (!coords.length) return;
@@ -173,6 +184,7 @@ export function MapView({
       });
 
       map.on('click', 'points', (e) => {
+        if (pickingRef.current) return;
         const id = e.features?.[0]?.properties?.id as string | undefined;
         const rec = id ? recordsRef.current.find((r) => r.record.id === id) : undefined;
         if (rec) onSelectRef.current(rec);
@@ -191,6 +203,7 @@ export function MapView({
           .addTo(map);
       });
       map.on('click', 'clusters', (e) => {
+        if (pickingRef.current) return;
         const f = e.features?.[0];
         const clusterId = f?.properties?.cluster_id;
         const src = map.getSource('records') as GeoJSONSource;
@@ -200,9 +213,13 @@ export function MapView({
           });
         }
       });
+      // Pick mode: any map click sets the new report's location.
+      map.on('click', (e) => {
+        if (pickingRef.current && onPickRef.current) onPickRef.current(e.lngLat.lat, e.lngLat.lng);
+      });
       for (const layer of ['points', 'clusters', 'overlay-pts']) {
-        map.on('mouseenter', layer, () => (map.getCanvas().style.cursor = 'pointer'));
-        map.on('mouseleave', layer, () => (map.getCanvas().style.cursor = ''));
+        map.on('mouseenter', layer, () => { if (!pickingRef.current) map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', layer, () => { if (!pickingRef.current) map.getCanvas().style.cursor = ''; });
       }
       fitData(map);
     });
@@ -243,6 +260,33 @@ export function MapView({
       map.setFilter('points-selected', ['==', ['get', 'id'], selectedId ?? '__none__']);
     }
   }, [selectedId]);
+
+  // Crosshair cursor while picking a location.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map) map.getCanvas().style.cursor = picking ? 'crosshair' : '';
+  }, [picking]);
+
+  // Draft pin for the report being created (draggable to refine).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (!draft) {
+      draftMarkerRef.current?.remove();
+      draftMarkerRef.current = null;
+      return;
+    }
+    if (!draftMarkerRef.current) {
+      const el = document.createElement('div');
+      el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 0 0 4px #ef444466;cursor:grab';
+      const marker = new maplibregl.Marker({ element: el, draggable: true });
+      marker.on('dragend', () => { const ll = marker.getLngLat(); onPickRef.current?.(ll.lat, ll.lng); });
+      marker.setLngLat([draft.lng, draft.lat]).addTo(map);
+      draftMarkerRef.current = marker;
+    } else {
+      draftMarkerRef.current.setLngLat([draft.lng, draft.lat]);
+    }
+  }, [draft]);
 
   const ovCount = overlay?.length ?? 0;
   return (

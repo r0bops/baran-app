@@ -52,6 +52,8 @@ export default function App() {
   const [filterState, setFilterState] = useState<Record<string, Record<string, string[]>>>(() => loadJSON('baran.filters') || {});
   const [offlineTs, setOfflineTs] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [draftLocation, setDraftLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [personStats, setPersonStats] = useState<PersonStats | null>(null);
   const [damage, setDamage] = useState<DamageReport[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -178,7 +180,15 @@ export default function App() {
   const mapOrRecords =
     centerView === 'map' ? (
       <Suspense fallback={<div style={{ height: '100%', display: 'grid', placeItems: 'center', color: '#64748b' }}>Cargando mapa…</div>}>
-        <MapView records={filtered} overlay={overlayPoints} selectedId={selectedId} onSelect={(r) => openDetail(r.record.id as string)} />
+        <MapView
+          records={filtered}
+          overlay={overlayPoints}
+          selectedId={selectedId}
+          onSelect={(r) => openDetail(r.record.id as string)}
+          picking={picking}
+          draft={showCreate ? draftLocation : null}
+          onPick={(la, lo) => { setDraftLocation({ lat: la, lng: lo }); setPicking(false); }}
+        />
       </Suspense>
     ) : (
       <div>
@@ -241,7 +251,7 @@ export default function App() {
             </button>
           ))}
           <button
-            onClick={() => setShowCreate(true)}
+            onClick={() => { setDraftLocation({ lat: 10.4806, lng: -66.9036 }); setShowCreate(true); }}
             style={{ padding: '6px 14px', borderRadius: 6, border: 'none', backgroundColor: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
           >
             ＋ Reporte
@@ -320,9 +330,20 @@ export default function App() {
 
       {showCreate && (
         <CreateReportModal
-          onClose={() => setShowCreate(false)}
-          onCreated={(id) => { setShowCreate(false); flash('Reporte creado'); loadReports().then(() => openDetail(id)); loadIncidents(); }}
+          visible={!picking}
+          location={draftLocation}
+          onLocationChange={(la, lo) => setDraftLocation({ lat: la, lng: lo })}
+          onRequestPick={() => { setView('map'); setPicking(true); }}
+          onClose={() => { setShowCreate(false); setPicking(false); }}
+          onCreated={(id) => { setShowCreate(false); setPicking(false); flash('Reporte creado'); loadReports().then(() => openDetail(id)); loadIncidents(); }}
         />
+      )}
+
+      {picking && (
+        <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', backgroundColor: '#1e3a5f', border: '1px solid #38bdf8', color: '#e0f2fe', padding: '8px 16px', borderRadius: 8, fontSize: 13, zIndex: 60, display: 'flex', gap: 12, alignItems: 'center', boxShadow: '0 4px 16px #0008' }}>
+          📍 Toca el mapa para ubicar el reporte (o arrastra el pin)
+          <button onClick={() => setPicking(false)} style={{ ...ghost, padding: '3px 8px' }}>Listo</button>
+        </div>
       )}
     </div>
   );
