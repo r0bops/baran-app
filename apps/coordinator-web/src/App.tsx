@@ -12,7 +12,7 @@ import { ensureAuth, initCoordinator } from './lib/coordinator';
 import { toCSV, toGeoJSON, downloadFile } from './lib/export';
 import { fetchPersonStats, fetchDamageRecent, fetchNews, type PersonStats, type DamageReport, type NewsItem } from './lib/sosvzla';
 import { fetchCached } from './lib/cache';
-import { SOURCES } from './config/sources';
+import { SOURCES, SOURCE_GROUPS } from './config/sources';
 import { loadSource, applySourceFilters, toPoints, type NormalizedRecord } from './lib/sourceEngine';
 import type { OverlayPoint } from './lib/overlays';
 import { CommunityPanel } from './components/CommunityPanel';
@@ -233,7 +233,7 @@ export default function App() {
         </span>
         <span style={{ color: '#475569' }}>{filtered.length} de {records.length} firmados</span>
         <LayersControl
-          sources={SOURCES}
+          groups={SOURCE_GROUPS}
           enabled={enabledLayers}
           counts={layerCounts}
           onToggle={(id, on) => setEnabledLayers((e) => ({ ...e, [id]: on }))}
