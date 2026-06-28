@@ -80,10 +80,18 @@ function seedFromVectors() {
 }
 seedFromVectors();
 
+// Server-assigned metadata is NOT part of the signed bytes — strip it before the fold
+// re-verifies signatures (otherwise origin/_reach break verification).
+function stripMeta(rec) {
+  const { origin, _received_at, _reach, ...clean } = rec;
+  void origin; void _received_at; void _reach;
+  return clean;
+}
+
 // Trust fold delegates to the vector-locked core.
 function foldFor(rec) {
   const subjectId = rec.subject_id || null;
-  return coreFold(rec, store.attestationsFor(rec.id), pubRawById, subjectId);
+  return coreFold(stripMeta(rec), store.attestationsFor(rec.id).map(stripMeta), pubRawById, subjectId);
 }
 
 function reachFor(rec) {

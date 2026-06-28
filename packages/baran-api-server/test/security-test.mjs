@@ -106,6 +106,12 @@ try {
   const forgedSig = signPayload(forgedReceipt, mallory);
   ok(!crypto.verify(null, Buffer.from(canon(forgedReceipt), 'utf8'), pinnedPub, Buffer.from(base64urlDecode(forgedSig))), 'mallory-signed receipt does NOT verify under pinned key');
 
+  console.log('7b. A coordinator-authored report folds to a VALID tier (origin stripped)');
+  const ownReport = statusReply(coord, 70, sos.record.id);
+  const ownCreated = await post('/v1/records', ownReport, token);
+  ok(ownCreated.status === 201, 'own report accepted');
+  ok(ownCreated.body.meta.tierName !== 'invalid', `own report folds valid, got ${ownCreated.body.meta.tierName}`);
+
   console.log('8. Replaying an accepted write is idempotent');
   const before = (await (await fetch(`${BASE}/v1/records?limit=500`)).json()).length;
   const rec = statusReply(coord, 50, sos.record.id);
