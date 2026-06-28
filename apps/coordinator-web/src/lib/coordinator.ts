@@ -90,6 +90,59 @@ interface TargetInfo {
   plus_code?: string;
 }
 
+export const CLAIM_STATUSES = ['reconocido', 'en_camino', 'en_sitio', 'resuelto', 'sin_recursos'] as const;
+export type ClaimStatus = (typeof CLAIM_STATUSES)[number];
+
+/** A standalone new report authored by the coordinator (online-origin). */
+export function buildReport(type: string, prio: number, payload: Record<string, unknown>): Record<string, unknown> {
+  const id = getCoordinator();
+  const seq = nextSeq();
+  const t = now();
+  const body: Record<string, unknown> = {
+    schema_version: 1,
+    kind: 'report',
+    id: `${id.deviceId}:${seq}`,
+    author_id: id.deviceId,
+    author_seq: seq,
+    type,
+    prio,
+    created_wall_ms: t,
+    hlc: `${t}.0.${id.deviceId}`,
+    payload,
+  };
+  const { content_hash, sig } = signRecord(body, id);
+  return { ...body, content_hash, sig };
+}
+
+/** Claim a report and set its status — a signed `status` report referencing the target.
+ *  Operational only (who is handling it); does NOT affect the trust fold. */
+export function buildStatusUpdate(target: TargetInfo, status: ClaimStatus, note: string): Record<string, unknown> {
+  const id = getCoordinator();
+  const seq = nextSeq();
+  const t = now();
+  const payload: Record<string, unknown> = {
+    refs: [target.id],
+    status,
+    claimed_by: id.deviceId,
+    ...(note ? { msg: note } : {}),
+    ...(target.plus_code ? { plus_code: target.plus_code } : {}),
+  };
+  const body: Record<string, unknown> = {
+    schema_version: 1,
+    kind: 'report',
+    id: `${id.deviceId}:${seq}`,
+    author_id: id.deviceId,
+    author_seq: seq,
+    type: 'status',
+    prio: target.prio ?? 2,
+    created_wall_ms: t,
+    hlc: `${t}.0.${id.deviceId}`,
+    payload,
+  };
+  const { content_hash, sig } = signRecord(body, id);
+  return { ...body, content_hash, sig };
+}
+
 /** A signed `status` report that references a target report (the coordinator's reply). */
 export function buildStatusReply(target: TargetInfo, msg: string): Record<string, unknown> {
   const id = getCoordinator();

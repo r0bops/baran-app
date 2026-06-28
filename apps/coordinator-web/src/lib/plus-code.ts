@@ -32,6 +32,28 @@ export function decodePlusCode(raw?: string | null): LatLng | null {
   return { lat: lat + lastRes / 2, lng: lng + lastRes / 2, cell: lastRes };
 }
 
+/** Encode lat/lng to a full Plus Code (pair precision). Inverse of decodePlusCode. */
+export function encodePlusCode(lat: number, lng: number, codeLen = 10): string {
+  let nlng = lng;
+  while (nlng < -180) nlng += 360;
+  while (nlng >= 180) nlng -= 360;
+  let aLat = Math.min(Math.max(lat, -90), 89.9999999) + 90;
+  let aLng = nlng + 180;
+  let res = 20;
+  let s = '';
+  for (let i = 0; i < codeLen / 2; i++) {
+    const latIdx = Math.min(19, Math.max(0, Math.floor(aLat / res)));
+    const lngIdx = Math.min(19, Math.max(0, Math.floor(aLng / res)));
+    s += ALPHABET[latIdx] + ALPHABET[lngIdx];
+    aLat -= latIdx * res;
+    aLng -= lngIdx * res;
+    res /= 20;
+    if (s.length === 8) s += '+';
+  }
+  if (!s.includes('+')) s += '+';
+  return s;
+}
+
 /** Coarse (sensitive) 8-char cell from a fuller code, mirroring the contract. */
 export function toPlusCodeCoarse(code?: string | null): string | null {
   if (!code) return null;

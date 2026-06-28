@@ -26,6 +26,8 @@ import { AttestationTimeline } from './components/AttestationTimeline';
 import { Filters, DEFAULT_FILTERS, applyFilters, type FilterState } from './components/Filters';
 import { LayersControl } from './components/LayersControl';
 import { SourceFilters } from './components/SourceFilters';
+import { CreateReportModal } from './components/CreateReportModal';
+import { statusUpdatesFor, STATUS_META } from './lib/status';
 
 type View = 'map' | 'incidents' | 'records';
 
@@ -49,6 +51,7 @@ export default function App() {
   });
   const [filterState, setFilterState] = useState<Record<string, Record<string, string[]>>>(() => loadJSON('baran.filters') || {});
   const [offlineTs, setOfflineTs] = useState<number | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
   const [personStats, setPersonStats] = useState<PersonStats | null>(null);
   const [damage, setDamage] = useState<DamageReport[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -190,6 +193,8 @@ export default function App() {
     <IncidentList incidents={incidents} onSelect={(inc) => { setFilters({ ...filters, type: inc.type }); setView('records'); }} />
   );
 
+  const statusUpdates = detail ? statusUpdatesFor(detail.record.record.id as string, records) : [];
+
   const detailInner = detail && (
     <>
       <div style={{ padding: '12px 16px', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
@@ -197,6 +202,23 @@ export default function App() {
         <button onClick={() => { setSelectedId(null); setDetail(null); }} style={{ ...ghost, flexShrink: 0 }}>✕</button>
       </div>
       <RecordDetail data={detail.record} />
+      {statusUpdates.length > 0 && (
+        <div style={{ padding: '0 16px 12px' }}>
+          <h4 style={{ color: '#a78bfa', fontSize: 13, margin: '4px 0 8px' }}>Estado operativo</h4>
+          {statusUpdates.slice().reverse().map((u, i) => {
+            const m = STATUS_META[u.status] || { label: u.status, color: '#94a3b8' };
+            return (
+              <div key={i} style={{ padding: '6px 10px', borderRadius: 6, backgroundColor: '#0f172a', border: '1px solid #1e293b', borderLeft: `3px solid ${m.color}`, marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ color: m.color, fontWeight: 600, fontSize: 12 }}>🚩 {m.label}</span>
+                  <span style={{ color: '#64748b', fontSize: 10, fontFamily: 'monospace' }}>{u.claimedBy.slice(0, 12)}</span>
+                </div>
+                {u.note && <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>{u.note}</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div style={{ padding: '0 16px 16px' }}>
         <h4 style={{ color: '#94a3b8', fontSize: 13, marginBottom: 8 }}>Atestaciones ({detail.attestations.length})</h4>
         <AttestationTimeline attestations={detail.attestations} />
@@ -218,6 +240,12 @@ export default function App() {
               {v === 'map' ? '🗺️ Mapa' : v === 'incidents' ? '📊 Incidentes' : '📋 Registros'}
             </button>
           ))}
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{ padding: '6px 14px', borderRadius: 6, border: 'none', backgroundColor: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
+          >
+            ＋ Reporte
+          </button>
           {exportMenu}
         </div>
       </header>
@@ -288,6 +316,13 @@ export default function App() {
           </div>
           {detail && <div style={{ ...panel, flex: 1, overflow: 'auto' }}>{detailInner}</div>}
         </main>
+      )}
+
+      {showCreate && (
+        <CreateReportModal
+          onClose={() => setShowCreate(false)}
+          onCreated={(id) => { setShowCreate(false); flash('Reporte creado'); loadReports().then(() => openDetail(id)); loadIncidents(); }}
+        />
       )}
     </div>
   );
