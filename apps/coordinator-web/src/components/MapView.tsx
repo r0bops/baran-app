@@ -261,10 +261,13 @@ export function MapView({
     }
   }, [selectedId]);
 
-  // Crosshair cursor while picking a location.
+  // Crosshair cursor while picking; centre on the draft pin when the form opens.
   useEffect(() => {
     const map = mapRef.current;
-    if (map) map.getCanvas().style.cursor = picking ? 'crosshair' : '';
+    if (!map) return;
+    map.getCanvas().style.cursor = picking ? 'crosshair' : '';
+    if (picking && draft) map.easeTo({ center: [draft.lng, draft.lat], zoom: Math.max(map.getZoom(), 12), duration: 400 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picking]);
 
   // Draft pin for the report being created (draggable to refine).
