@@ -11,6 +11,7 @@ import venrescate.android.data.MeshStore
 sealed interface Nav {
     data object Map : Nav
     data object Signals : Nav
+    data object Persons : Nav
     data object Profile : Nav
     data object Settings : Nav
     data object Create : Nav
@@ -32,6 +33,10 @@ fun MainNavHost(store: MeshStore = VenRescateApplication.instance.store) {
                 NavigationBarItem(
                     selected = nav == Nav.Signals, onClick = { nav = Nav.Signals },
                     icon = { Text("📡") }, label = { Text("Señales") },
+                )
+                NavigationBarItem(
+                    selected = nav == Nav.Persons, onClick = { nav = Nav.Persons },
+                    icon = { Text("🔎") }, label = { Text("Personas") },
                 )
                 NavigationBarItem(
                     selected = nav == Nav.Profile, onClick = { nav = Nav.Profile },
@@ -59,6 +64,7 @@ fun MainNavHost(store: MeshStore = VenRescateApplication.instance.store) {
             when (val n = nav) {
                 Nav.Map -> MapScreen(signals) { nav = Nav.Detail(it) }
                 Nav.Signals -> SignalsScreen(signals) { nav = Nav.Detail(it) }
+                Nav.Persons -> PersonsScreen()
                 Nav.Profile -> ProfileScreen(store)
                 Nav.Settings -> SettingsScreen(store)
                 Nav.Create -> CreateScreen(
