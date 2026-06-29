@@ -52,12 +52,13 @@ fun BadgeRow(fold: FoldResult, reach: ReachLevel) {
     }
 }
 
-/** Simple wrap layout (avoids depending on the experimental FlowRow). */
+/** Wraps badges onto multiple lines so a signal with many badges never clips. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun FlowRowCompat(content: @Composable () -> Unit) {
-    Row(
+    androidx.compose.foundation.layout.FlowRow(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.fillMaxWidth(),
     ) { content() }
 }
