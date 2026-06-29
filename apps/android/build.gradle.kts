@@ -63,8 +63,8 @@ dependencies {
     // Google Nearby Connections — phone-to-phone mesh, no Ditto license required
     implementation("com.google.android.gms:play-services-nearby:19.0.0")
 
-    // MapLibre Native
-    // implementation("org.maplibre.gl:android-sdk:10.2.0")
+    // MapLibre Native — real offline-capable vector basemap + pin overlay
+    implementation("org.maplibre.gl:android-sdk:11.5.2")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
