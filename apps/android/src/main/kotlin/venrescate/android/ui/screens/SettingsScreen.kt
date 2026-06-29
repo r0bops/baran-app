@@ -2,18 +2,27 @@
 
 package venrescate.android.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import venrescate.android.data.LocalIdentity
+import venrescate.android.data.MapFilters
 import venrescate.android.data.MeshStore
 import venrescate.android.mesh.CoordinatorBridge
 
@@ -30,6 +39,7 @@ fun SettingsScreen(store: MeshStore) {
     val peers by store.peers.collectAsState()
 
     val context = LocalContext.current
+    MapFilters.ensureLoaded(context)
     val scope = rememberCoroutineScope()
     var bridge by remember { mutableStateOf(false) }
     var bridgeBase by remember { mutableStateOf(LocalIdentity.loadBridgeBase(context)) }
@@ -52,7 +62,12 @@ fun SettingsScreen(store: MeshStore) {
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+    ) {
         Text("Ajustes", fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
 
@@ -125,6 +140,24 @@ fun SettingsScreen(store: MeshStore) {
             }
         }
 
+        ExpandableSettingCard("Fuentes de datos", subtitle = "Mostrar / ocultar") {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "Activa o desactiva cada fuente. Afecta el mapa y los listados.",
+                    fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                SourceGroup(context, "VenRescate · malla firmada", listOf(MapFilters.SIGNED to "Señales firmadas"))
+                SourceGroup(
+                    context, "SOS Venezuela 2026",
+                    listOf(MapFilters.AID to "Puntos de ayuda", MapFilters.DAMAGE to "Daños", MapFilters.TRAPPED to "Personas atrapadas", MapFilters.NEWS to "Noticias"),
+                )
+                SourceGroup(context, "USGS", listOf(MapFilters.USGS to "Sismos (epicentros)"))
+                SourceGroup(context, "EMSC", listOf(MapFilters.EMSC to "Sismos (red regional)"))
+                SourceGroup(context, "GDACS", listOf(MapFilters.GDACS to "Alerta oficial"))
+                SourceGroup(context, "api-vzla-pfif", listOf(MapFilters.PERSONS to "Personas (agregado)"))
+            }
+        }
+
         SettingCard("Estado de la malla") {
             Column {
                 Text("Transporte: Nearby Connections (BLE + Wi-Fi)", fontSize = 12.sp)
@@ -145,6 +178,54 @@ private fun SettingCard(title: String, content: @Composable () -> Unit) {
             Text(title, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             content()
+        }
+    }
+}
+
+/** A SettingCard whose body collapses behind a tappable header (collapsed by default). */
+@Composable
+private fun ExpandableSettingCard(title: String, subtitle: String, content: @Composable () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Card(shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable { expanded = !expanded }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(title, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(
+                    if (expanded) "Ocultar" else subtitle,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Icon(
+                    if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Ocultar" else "Mostrar",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+            AnimatedVisibility(visible = expanded) {
+                Column(Modifier.padding(top = 8.dp)) { content() }
+            }
+        }
+    }
+}
+
+/** One API/provider group with a switch per source it exposes. */
+@Composable
+private fun SourceGroup(context: android.content.Context, name: String, sources: List<Pair<String, String>>) {
+    Column {
+        Text(name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+        sources.forEach { (key, label) ->
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Switch(checked = MapFilters.isOn(key), onCheckedChange = { MapFilters.set(context, key, it) })
+                Spacer(Modifier.width(10.dp))
+                Text(label, fontSize = 13.sp)
+            }
         }
     }
 }
