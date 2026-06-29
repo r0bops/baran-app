@@ -8,6 +8,7 @@ import venrescate.app.Reach
 import venrescate.app.ReachLevel
 import venrescate.app.SignalEngine
 import venrescate.crypto.Crypto
+import venrescate.geo.PlusCode
 import venrescate.domain.AttestationRecord
 import venrescate.domain.FoldResult
 import venrescate.domain.ReportRecord
@@ -172,9 +173,15 @@ class MeshStore(private val context: Context) : MeshDelegate {
         val bobEng = SignalEngine(bob, now = { clock })
         val carolEng = SignalEngine(carol, now = { clock })
 
+        // Real Caracas / La Guaira locations, encoded so the codes round-trip
+        // back onto the city (made-up codes used to land in the open Atlantic).
+        val sosCode = PlusCode.encode(10.5061, -66.9146)   // Caracas centro
+        val hazardCode = PlusCode.encode(10.5089, -66.9201) // Av. cercana
+        val needCode = PlusCode.encode(10.6018, -66.9340)   // La Guaira / Maiquetía
+
         val sos = bobEng.createReport(
             "sos", 0,
-            mapOf("severity" to "critical", "note" to "Dos personas atrapadas, edificio azul", "count" to 2, "plus_code" to "77GR2J4C+9P"),
+            mapOf("severity" to "critical", "note" to "Dos personas atrapadas, edificio azul", "count" to 2, "plus_code" to sosCode),
         )
         ingestReport(sos)
         clock += 60_000
@@ -183,17 +190,17 @@ class MeshStore(private val context: Context) : MeshDelegate {
         ingestAttestation(
             carolEng.createAttestation(
                 sos, "on_site", "still_needs_help",
-                mapOf("type" to "pluscode", "match" to true, "plus_code8" to "77GR2J4C"),
+                mapOf("type" to "pluscode", "match" to true, "plus_code8" to PlusCode.coarse(sosCode)),
             ),
         )
 
         clock += 120_000
         ingestReport(
-            carolEng.createReport("hazard", 1, mapOf("note" to "Cables caídos en la avenida", "plus_code" to "77GR2J5C+2X")),
+            carolEng.createReport("hazard", 1, mapOf("note" to "Cables caídos en la avenida", "plus_code" to hazardCode)),
         )
         clock += 60_000
         ingestReport(
-            bobEng.createReport("need", 2, mapOf("note" to "Se necesita agua y vendas", "count" to 12, "plus_code" to "77GR2J4F+9P")),
+            bobEng.createReport("need", 2, mapOf("note" to "Se necesita agua y vendas", "count" to 12, "plus_code" to needCode)),
         )
     }
 }
