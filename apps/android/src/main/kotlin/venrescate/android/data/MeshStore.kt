@@ -119,6 +119,15 @@ class MeshStore(private val context: Context) : MeshDelegate {
         transport?.broadcast(payload)
     }
 
+    /** Every locally-held signed record as an API-ready map (reports + attestations). */
+    @Synchronized
+    fun allRecordMaps(): List<Map<String, Any?>> {
+        val out = ArrayList<Map<String, Any?>>()
+        for (r in reports.values) out.add(r.toMap())
+        for (list in attestations.values) for (a in list) out.add(a.toMap())
+        return out
+    }
+
     @Synchronized
     override fun snapshot(): List<ByteArray> {
         val out = ArrayList<ByteArray>()

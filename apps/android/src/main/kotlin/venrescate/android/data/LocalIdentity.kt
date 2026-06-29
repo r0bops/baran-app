@@ -17,6 +17,18 @@ object LocalIdentity {
     private const val PREFS = "venrescate.identity"
     private const val KEY_SEED = "seed_hex"
     private const val KEY_SEQ = "author_seq"
+    private const val KEY_BRIDGE_BASE = "bridge_base"
+
+    /** Coordinator base URL for the internet bridge. Defaults to localhost so a
+     *  USB `adb reverse tcp:3001 tcp:3001` tunnel works with no LAN setup. */
+    const val DEFAULT_BRIDGE_BASE = "http://localhost:3001"
+
+    fun loadBridgeBase(ctx: Context): String =
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_BRIDGE_BASE, DEFAULT_BRIDGE_BASE)!!
+
+    fun saveBridgeBase(ctx: Context, base: String) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_BRIDGE_BASE, base).apply()
+    }
 
     fun loadOrCreate(ctx: Context): VenRescateIdentity {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

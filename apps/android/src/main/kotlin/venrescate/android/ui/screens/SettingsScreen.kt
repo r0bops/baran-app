@@ -8,10 +8,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import venrescate.android.data.LocalIdentity
 import venrescate.android.data.MeshStore
+import venrescate.android.mesh.CoordinatorBridge
 
 private val BATTERY_MODES = listOf("Normal", "Conservar", "Frugal", "Lifeline")
 private val LANGS = listOf("es-VE", "es-ES", "en")
@@ -22,9 +26,31 @@ fun SettingsScreen(store: MeshStore) {
     var lang by remember { mutableStateOf(LANGS[0]) }
     var battery by remember { mutableStateOf(BATTERY_MODES[0]) }
     var lowLiteracy by remember { mutableStateOf(false) }
-    var bridge by remember { mutableStateOf(false) }
     val signals by store.signals.collectAsState()
     val peers by store.peers.collectAsState()
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var bridge by remember { mutableStateOf(false) }
+    var bridgeBase by remember { mutableStateOf(LocalIdentity.loadBridgeBase(context)) }
+    var bridgeBusy by remember { mutableStateOf(false) }
+    var bridgeStatus by remember { mutableStateOf<String?>(null) }
+
+    fun syncToCoordinator() {
+        bridgeBusy = true
+        bridgeStatus = "Conectando al coordinador…"
+        LocalIdentity.saveBridgeBase(context, bridgeBase)
+        scope.launch {
+            val res = CoordinatorBridge.pushAll(bridgeBase, store.allRecordMaps())
+            res.bridgedReportIds.forEach { store.markBridged(it) }
+            bridgeBusy = false
+            bridgeStatus = when {
+                res.pushed > 0 && res.failed == 0 -> "✅ ${res.pushed} registros enviados al coordinador"
+                res.pushed > 0 -> "Enviados ${res.pushed}, fallaron ${res.failed} · ${res.error ?: ""}"
+                else -> "No se pudo conectar · ${res.error ?: "sin respuesta"}"
+            }
+        }
+    }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Ajustes", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -61,17 +87,39 @@ fun SettingsScreen(store: MeshStore) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Switch(
                         checked = bridge,
+                        enabled = !bridgeBusy,
                         onCheckedChange = {
                             bridge = it
-                            if (it) signals.forEach { s -> store.markBridged(s.report.id) }
+                            if (it) syncToCoordinator() else bridgeStatus = null
                         },
                     )
                     Spacer(Modifier.width(8.dp))
                     Text("Ser puente (cuando tenga señal)")
                 }
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = bridgeBase,
+                    onValueChange = { bridgeBase = it },
+                    label = { Text("Coordinador (URL)") },
+                    singleLine = true,
+                    enabled = !bridgeBusy,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = { syncToCoordinator() }, enabled = !bridgeBusy) {
+                        Text(if (bridgeBusy) "Sincronizando…" else "Sincronizar ahora")
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text("${store.allRecordMaps().size} registros locales", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
+                }
+                bridgeStatus?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
+                }
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    if (bridge) "🌐 Sirviendo de puente · alcance de las señales actualizado a «llegó a internet»"
-                    else "Cuando captes internet, reenvía la malla al coordinador y trae respuestas.",
+                    "Reenvía la malla local al coordinador. Las firmas se re-verifican en el servidor.",
                     fontSize = 11.sp, color = MaterialTheme.colorScheme.outline,
                 )
             }
