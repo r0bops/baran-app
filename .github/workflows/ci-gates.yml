@@ -15,8 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Build baran-core-ts
-        working-directory: packages/baran-core-ts
+      - name: Build venrescate-core-ts
+        working-directory: packages/venrescate-core-ts
         run: npm install && npm run build
       - name: Build coordinator-web
         working-directory: apps/coordinator-web
@@ -33,8 +33,8 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-      - name: Build baran-core (includes vector + adversarial tests)
-        run: ./gradlew :baran-core:build
+      - name: Build venrescate-core (includes vector + adversarial tests)
+        run: ./gradlew :venrescate-core:build
 
   security-suite:
     name: Security — adversarial + functional suites
@@ -44,17 +44,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Build baran-core-ts (required by the backend tests)
-        working-directory: packages/baran-core-ts
+      - name: Build venrescate-core-ts (required by the backend tests)
+        working-directory: packages/venrescate-core-ts
         run: npm install && npm run build
       - name: Core adversarial suite
-        working-directory: packages/baran-core-ts
+        working-directory: packages/venrescate-core-ts
         run: npm run test:security
       - name: API seam integration test
         run: node test/integration-test.mjs
       - name: Backend functional test (auth/RBAC/persistence/bridge)
-        working-directory: packages/baran-api-server
+        working-directory: packages/venrescate-api-server
         run: npm test
       - name: Backend adversarial suite
-        working-directory: packages/baran-api-server
+        working-directory: packages/venrescate-api-server
         run: npm run test:security

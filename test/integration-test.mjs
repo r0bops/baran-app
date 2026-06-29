@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const STUB_DIR = join(__dirname, '..', 'packages', 'baran-api-stub');
+const STUB_DIR = join(__dirname, '..', 'packages', 'venrescate-api-stub');
 const PORT = 3099; // non-conflicting port
 
 let passed = 0;

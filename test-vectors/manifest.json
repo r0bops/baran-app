@@ -1,5 +1,5 @@
 {
-  "version": "baran-v1-phase0",
+  "version": "venrescate-v1-phase0",
   "generated_by": "tools/gen-vectors.js (zero-dep Node reference impl)",
   "canonicalization": "deterministic JSON, recursively sorted keys, compact, UTF-8, integers only",
   "signature_alg": "Ed25519 over canonical(record \\ {sig})",
@@ -14,5 +14,5 @@
     "assertions": 13,
     "all_passed": true
   },
-  "contract_required": "Kotlin baran-core and TypeScript baran-core-ts MUST reproduce every signature, content_hash, and fold \"expected\" output exactly."
+  "contract_required": "Kotlin venrescate-core and TypeScript venrescate-core-ts MUST reproduce every signature, content_hash, and fold \"expected\" output exactly."
 }

@@ -1,0 +1,43 @@
+export { canon, canonicalBytes } from './canonical.js';
+export {
+  keyFromSeed,
+  fingerprint,
+  sign,
+  verify,
+  signPayload,
+  verifyPayload,
+  base64urlEncode,
+  base64urlDecode,
+  IDS,
+  bytesToHex,
+} from './crypto.js';
+export type { VenRescateIdentity, SignResult } from './crypto.js';
+export { fold } from './fold.js';
+export type { FoldResult } from './fold.js';
+export {
+  parseHLC,
+  makeHLC,
+  sortKey,
+  ingressGate,
+  computeTTL,
+} from './time/hlc.js';
+export type { HLCParsed, IngressDecision } from './time/hlc.js';
+export {
+  computeReach,
+  REACH_LABELS,
+  REACH_DESCRIPTIONS,
+  TIER_LABELS,
+  TIER_DESCRIPTIONS,
+  PRIORITY_LABELS,
+} from './reach/reach.js';
+export type { ReachLevel, ReachState } from './reach/reach.js';
+export type {
+  SignedRecord,
+  StoredRecord,
+  SyncQuery,
+  SyncEvent,
+  PeerInfo,
+  TransportConfig,
+  SyncTransport,
+  SignedRecordStore,
+} from './store/interfaces.js';

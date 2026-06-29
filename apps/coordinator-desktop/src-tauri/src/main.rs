@@ -1,3 +1,3 @@
 fn main() {
-    baran_coordinator_lib::run()
+    venrescate_coordinator_lib::run()
 }

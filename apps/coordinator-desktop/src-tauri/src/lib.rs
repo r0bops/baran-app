@@ -1,6 +1,6 @@
 use tauri::Manager;
 
-const KEYCHAIN_SERVICE: &str = "org.baran.coordinator";
+const KEYCHAIN_SERVICE: &str = "org.venrescate.coordinator";
 const KEYCHAIN_USER: &str = "coordinator-seed";
 
 #[tauri::command]

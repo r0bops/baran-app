@@ -52,7 +52,7 @@ export interface RecordMeta {
   received_at?: string;
 }
 
-export interface BaranRecord {
+export interface VenRescateRecord {
   record: Record<string, unknown>;
   meta: RecordMeta;
 }
@@ -67,7 +67,7 @@ export interface Incident {
   disputed: boolean;
 }
 
-export async function fetchRecords(params?: Record<string, string>): Promise<BaranRecord[]> {
+export async function fetchRecords(params?: Record<string, string>): Promise<VenRescateRecord[]> {
   const qs = params ? '?' + new URLSearchParams(params).toString() : '';
   const res = await fetch(`${BASE}/records${qs}`);
   if (!res.ok) throw new Error(`API ${res.status}`);
@@ -76,7 +76,7 @@ export async function fetchRecords(params?: Record<string, string>): Promise<Bar
 
 export async function fetchRecord(
   id: string
-): Promise<{ record: BaranRecord['record']; meta: RecordMeta; attestations: BaranRecord[]; fold: RecordMeta }> {
+): Promise<{ record: VenRescateRecord['record']; meta: RecordMeta; attestations: VenRescateRecord[]; fold: RecordMeta }> {
   const res = await fetch(`${BASE}/records/${encodeURIComponent(id)}`);
   if (!res.ok) throw new Error(`API ${res.status}`);
   return res.json();
@@ -90,7 +90,7 @@ export async function fetchIncidents(): Promise<Incident[]> {
 
 /** POST a fully-signed record (coordinator-authored). The server verifies the
  *  signature against the author's registered key and tags unknown keys online-origin. */
-export async function postRecord(signed: Record<string, unknown>): Promise<BaranRecord> {
+export async function postRecord(signed: Record<string, unknown>): Promise<VenRescateRecord> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
   const res = await fetch(`${BASE}/records`, {

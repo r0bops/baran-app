@@ -1,6 +1,6 @@
 // Chronological attestation timeline with proof details.
 // Disputes render red, resolutions green — the trust history is auditable.
-import type { BaranRecord } from '../lib/api';
+import type { VenRescateRecord } from '../lib/api';
 
 const ATT_LABELS: Record<string, string> = {
   corroborate: 'corrobora',
@@ -52,7 +52,7 @@ function ProofDetail({ proof }: { proof: Record<string, unknown> }) {
   );
 }
 
-export function AttestationTimeline({ attestations }: { attestations: BaranRecord[] }) {
+export function AttestationTimeline({ attestations }: { attestations: VenRescateRecord[] }) {
   if (attestations.length === 0) {
     return <div style={{ color: '#64748b', fontSize: 12, padding: '4px 0' }}>Sin atestaciones aún.</div>;
   }

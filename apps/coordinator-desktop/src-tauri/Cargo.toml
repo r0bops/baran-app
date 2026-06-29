@@ -1,12 +1,12 @@
 [package]
-name = "baran-coordinator"
+name = "venrescate-coordinator"
 version = "0.1.0"
-description = "Baran Coordinator — Tauri 2 desktop app"
-authors = ["Baran Rescue Project"]
+description = "VenRescate Coordinator — Tauri 2 desktop app"
+authors = ["VenRescate Rescue Project"]
 edition = "2021"
 
 [lib]
-name = "baran_coordinator_lib"
+name = "venrescate_coordinator_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

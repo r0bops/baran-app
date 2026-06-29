@@ -1,7 +1,7 @@
 // Local database (IndexedDB) for external API responses, so the coordinator keeps
 // working OFFLINE with the last-known data. Every successful fetch is cached; when a
 // fetch fails (offline / server down), the cached copy is served instead.
-const DB_NAME = 'baran-cache';
+const DB_NAME = 'venrescate-cache';
 const STORE = 'kv';
 
 let dbp: Promise<IDBDatabase> | null = null;

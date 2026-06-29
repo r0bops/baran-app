@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'packages/baran-core/**'
-      - 'packages/baran-core-ts/**'
-      - 'packages/baran-api-stub/**'
+      - 'packages/venrescate-core/**'
+      - 'packages/venrescate-core-ts/**'
+      - 'packages/venrescate-api-stub/**'
       - 'test-vectors/**'
   pull_request:
     branches: [main]
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/baran-core-ts
+        working-directory: packages/venrescate-core-ts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,10 +41,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Build & test
-        run: ./gradlew :baran-core:build
+        run: ./gradlew :venrescate-core:build
       - name: Run vector test
         run: |
-          java -cp packages/baran-core/build/libs/*:packages/baran-core/build/classes/kotlin/test:$(find ~/.gradle -name 'gson-*.jar' | head -1):$(find ~/.gradle -name 'bcprov-*.jar' | head -1):$(find ~/.gradle -name 'kotlin-stdlib-*.jar' | head -1):$(find ~/.gradle -name 'kotlin-stdlib-jdk8-*.jar' | head -1) baran.VectorTest
+          java -cp packages/venrescate-core/build/libs/*:packages/venrescate-core/build/classes/kotlin/test:$(find ~/.gradle -name 'gson-*.jar' | head -1):$(find ~/.gradle -name 'bcprov-*.jar' | head -1):$(find ~/.gradle -name 'kotlin-stdlib-*.jar' | head -1):$(find ~/.gradle -name 'kotlin-stdlib-jdk8-*.jar' | head -1) venrescate.VectorTest
 
   convergence-report:
     name: Convergence Gate — REPORT
@@ -54,7 +54,7 @@ jobs:
     steps:
       - name: Check gate
         run: |
-          echo "## Baran Phase 0 — Cross-Language Convergence" >> $GITHUB_STEP_SUMMARY
+          echo "## VenRescate Phase 0 — Cross-Language Convergence" >> $GITHUB_STEP_SUMMARY
           if [ "${{ needs.typescript-vectors.result }}" = "success" ] && [ "${{ needs.kotlin-vectors.result }}" = "success" ]; then
             echo "✅ **PASS** — Kotlin and TypeScript reproduce all test vectors byte-for-byte" >> $GITHUB_STEP_SUMMARY
           else

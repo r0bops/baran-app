@@ -58,7 +58,7 @@ jobs:
           args: --target ${{ matrix.platform.target }}
           # Publish signed installers to a draft GitHub Release on tag pushes.
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-          releaseName: 'Baran Coordinación ${{ github.ref_name }}'
+          releaseName: 'VenRescate Coordinación ${{ github.ref_name }}'
           releaseDraft: true
         env:
           # --- Updater signing (Tauri) ---
@@ -80,6 +80,6 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4
         with:
-          name: baran-desktop-${{ matrix.platform.os }}
+          name: venrescate-desktop-${{ matrix.platform.os }}
           path: apps/coordinator-desktop/src-tauri/target/${{ matrix.platform.target }}/release/bundle/
           if-no-files-found: ignore

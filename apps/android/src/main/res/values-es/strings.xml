@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Baran</string>
+    <string name="app_name">VenRescate</string>
     <string name="tab_map">Mapa</string>
     <string name="tab_signals">Señales</string>
     <string name="tab_create">Crear</string>

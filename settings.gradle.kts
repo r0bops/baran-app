@@ -13,10 +13,10 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "baran"
+rootProject.name = "venrescate"
 
-include("baran-core")
-project(":baran-core").projectDir = file("packages/baran-core")
+include("venrescate-core")
+project(":venrescate-core").projectDir = file("packages/venrescate-core")
 
 include("android")
 project(":android").projectDir = file("apps/android")

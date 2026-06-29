@@ -1,4 +1,4 @@
-// Real geographic map (MapLibre GL). Baran's signed records are circles coloured by
+// Real geographic map (MapLibre GL). VenRescate's signed records are circles coloured by
 // type with a trust-tier ring. Overlay sources (SOS Venezuela, USGS, …) are a SEPARATE
 // layer of per-point coloured dots — external/unsigned data, never a trust tier.
 // Basemap is pluggable via VITE_BASEMAP_PMTILES; with none set it renders a blank style.
@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 import maplibregl, { type Map as MlMap, type GeoJSONSource } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { BaranRecord } from '../lib/api';
+import type { VenRescateRecord } from '../lib/api';
 import type { OverlayPoint } from '../lib/overlays';
 import { decodePlusCode } from '../lib/plus-code';
 
@@ -30,7 +30,7 @@ const TIER_COLOR: maplibregl.ExpressionSpecification = [
   0, '#ef4444', 1, '#f59e0b', 2, '#f97316', 3, '#3b82f6', 4, '#22c55e', 5, '#8b5cf6', '#64748b',
 ];
 
-function toFeatureCollection(records: BaranRecord[]): GeoJSON.FeatureCollection {
+function toFeatureCollection(records: VenRescateRecord[]): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = [];
   for (const rec of records) {
     const p = rec.record.payload as Record<string, unknown> | undefined;
@@ -81,10 +81,10 @@ export function MapView({
   draft,
   onPick,
 }: {
-  records: BaranRecord[];
+  records: VenRescateRecord[];
   overlay?: OverlayPoint[];
   selectedId?: string | null;
-  onSelect: (rec: BaranRecord) => void;
+  onSelect: (rec: VenRescateRecord) => void;
   picking?: boolean;
   draft?: { lat: number; lng: number } | null;
   onPick?: (lat: number, lng: number) => void;
@@ -112,7 +112,7 @@ export function MapView({
     map.fitBounds(b, { padding: 60, maxZoom: 13, duration: 0 });
   }
 
-  // Overlay sources carry real coordinates, so they win the initial view (Baran's test
+  // Overlay sources carry real coordinates, so they win the initial view (VenRescate's test
   // vectors use synthetic Plus Codes). Records-only fit is the fallback.
   function fitData(map: MlMap) {
     const ov = overlayRef.current;
@@ -296,7 +296,7 @@ export function MapView({
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontSize: 11, color: '#64748b', padding: '0 0 8px 2px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <span>🗺️ MapLibre{BASEMAP ? ' · mapa base PMTiles' : ' · sin mapa base'}</span>
-        <span>⬤ firmados (Baran)</span>
+        <span>⬤ firmados (VenRescate)</span>
         {ovCount > 0 && <span style={{ color: '#94a3b8' }}>○ {ovCount} puntos de capas externas</span>}
       </div>
       <div ref={containerRef} style={{ flex: 1, borderRadius: 8, overflow: 'hidden', border: '1px solid #1e293b' }} />

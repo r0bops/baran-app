@@ -3,7 +3,7 @@
 // coordinator reply is online-origin and only the ORIGINAL reporter's resolve flips
 // the "afirmado" flag — the coordinator can never fake a higher trust tier.
 import { useState } from 'react';
-import type { BaranRecord } from '../lib/api';
+import type { VenRescateRecord } from '../lib/api';
 import { postRecord } from '../lib/api';
 import {
   buildStatusReply,
@@ -22,7 +22,7 @@ export function CoordinatorPanel({
   target,
   onActed,
 }: {
-  target: BaranRecord;
+  target: VenRescateRecord;
   onActed: (msg: string) => void;
 }) {
   const [reply, setReply] = useState('');

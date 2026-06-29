@@ -27,7 +27,7 @@ captures/
 target/
 
 # API server runtime data
-packages/baran-api-server/data/
+packages/venrescate-api-server/data/
 
 # OS
 .DS_Store

@@ -5,7 +5,7 @@
 // how to FETCH an API, MAP its response to map points, and which FILTERS to expose.
 // Add a new API by appending a source to a group (or a new group); no component
 // code changes. All overlay data is external/unsigned and rendered as a layer
-// separate from Baran's signed records.
+// separate from VenRescate's signed records.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type FilterKind = 'chips' | 'select' | 'min';

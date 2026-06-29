@@ -1,7 +1,7 @@
 // Provenance-preserving exports. Every row/feature carries the signing identity,
 // signature, content hash, HLC, computed trust tier and reach — so an exported
 // dataset remains independently verifiable, never a bare dashboard dump.
-import type { BaranRecord } from './api';
+import type { VenRescateRecord } from './api';
 import { decodePlusCode } from './plus-code';
 
 function plusCodeOf(r: Record<string, unknown>): string | undefined {
@@ -14,7 +14,7 @@ function csvCell(v: unknown): string {
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
-const COLUMNS: { key: string; get: (b: BaranRecord) => unknown }[] = [
+const COLUMNS: { key: string; get: (b: VenRescateRecord) => unknown }[] = [
   { key: 'id', get: (b) => b.record.id },
   { key: 'kind', get: (b) => b.record.kind },
   { key: 'type', get: (b) => b.record.type },
@@ -33,13 +33,13 @@ const COLUMNS: { key: string; get: (b: BaranRecord) => unknown }[] = [
   { key: 'sig', get: (b) => b.record.sig },
 ];
 
-export function toCSV(records: BaranRecord[]): string {
+export function toCSV(records: VenRescateRecord[]): string {
   const header = COLUMNS.map((c) => c.key).join(',');
   const rows = records.map((b) => COLUMNS.map((c) => csvCell(c.get(b))).join(','));
   return [header, ...rows].join('\n');
 }
 
-export function toGeoJSON(records: BaranRecord[]): string {
+export function toGeoJSON(records: VenRescateRecord[]): string {
   const features = records.map((b) => {
     const pos = decodePlusCode(plusCodeOf(b.record));
     return {

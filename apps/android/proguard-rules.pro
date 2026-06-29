@@ -1,6 +1,6 @@
-# Baran APK ProGuard/R8 rules.
+# VenRescate APK ProGuard/R8 rules.
 
-# Keep BouncyCastle crypto providers used by baran-core (reflection-loaded).
+# Keep BouncyCastle crypto providers used by venrescate-core (reflection-loaded).
 -keep class org.bouncycastle.** { *; }
 -dontwarn org.bouncycastle.**
 
@@ -9,5 +9,5 @@
 -dontwarn androidx.compose.**
 
 # Keep the shared record/domain model (serialized to/from canonical maps).
--keep class baran.domain.** { *; }
--keep class baran.app.** { *; }
+-keep class venrescate.domain.** { *; }
+-keep class venrescate.app.** { *; }

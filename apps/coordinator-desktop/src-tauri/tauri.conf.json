@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/crates/tauri-cli/schema.json",
-  "productName": "Baran Coordinación",
+  "productName": "VenRescate Coordinación",
   "version": "0.1.0",
-  "identifier": "org.baran.coordinator-desktop",
+  "identifier": "org.venrescate.coordinator-desktop",
   "build": {
     "frontendDist": "../coordinator-web/dist",
     "devUrl": "http://localhost:5173",
@@ -10,11 +10,11 @@
     "beforeDevCommand": "cd ../coordinator-web && npm run dev"
   },
   "app": {
-    "title": "Baran · Coordinación de Rescate",
+    "title": "VenRescate · Coordinación de Rescate",
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Baran · Coordinación",
+        "title": "VenRescate · Coordinación",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://localhost:* https://api.baran.rescue https://sosvenezuela2026.com https://earthquake.usgs.gov https://demotiles.maplibre.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.maptiler.com; worker-src 'self' blob:"
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:* https://api.venrescate.rescue https://sosvenezuela2026.com https://earthquake.usgs.gov https://demotiles.maplibre.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.maptiler.com; worker-src 'self' blob:"
     }
   },
   "bundle": {
@@ -37,12 +37,12 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "copyright": "Baran Rescue Project",
+    "copyright": "VenRescate Rescue Project",
     "category": "Utility"
   },
   "plugins": {
     "store": {
-      "filename": "baran-coordinator.bin"
+      "filename": "venrescate-coordinator.bin"
     }
   }
 }

@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'apps/android/**'
-      - 'packages/baran-core/**'
+      - 'packages/venrescate-core/**'
   pull_request:
     branches: [main]
 
@@ -26,5 +26,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: baran-debug-apk
+          name: venrescate-debug-apk
           path: apps/android/build/outputs/apk/debug/*.apk

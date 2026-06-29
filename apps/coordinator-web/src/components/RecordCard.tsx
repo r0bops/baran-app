@@ -1,4 +1,4 @@
-import type { BaranRecord } from '../lib/api';
+import type { VenRescateRecord } from '../lib/api';
 
 const TYPE_ICONS: Record<string, string> = {
   sos: '🚨',
@@ -13,7 +13,7 @@ const PRIO_COLORS: Record<number, string> = {
   0: '#ef4444', 1: '#f97316', 2: '#eab308', 3: '#3b82f6', 4: '#6b7280', 5: '#9ca3af',
 };
 
-export function RecordCard({ data, selected, onClick }: { data: BaranRecord; selected?: boolean; onClick: () => void }) {
+export function RecordCard({ data, selected, onClick }: { data: VenRescateRecord; selected?: boolean; onClick: () => void }) {
   const r = data.record;
   const type = (r.type as string) || 'unknown';
   const prio = (r.prio as number) ?? 5;
@@ -54,7 +54,7 @@ export function RecordCard({ data, selected, onClick }: { data: BaranRecord; sel
   );
 }
 
-export function RecordDetail({ data }: { data: BaranRecord }) {
+export function RecordDetail({ data }: { data: VenRescateRecord }) {
   const r = data.record;
   const payload = r.payload as Record<string, unknown> | undefined;
 

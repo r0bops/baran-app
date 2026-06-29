@@ -1,5 +1,5 @@
 // SOS Venezuela 2026 public API client.
-// External, community-sourced, UNSIGNED data — kept strictly separate from Baran's
+// External, community-sourced, UNSIGNED data — kept strictly separate from VenRescate's
 // cryptographically-signed records and never folded into a trust tier. Attribution
 // ("SOS Venezuela 2026") is required by the source. https://sosvenezuela2026.com/docs
 const SOS_BASE =

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "org.baran.rescue"
+    namespace = "org.venrescate.rescue"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "org.baran.rescue"
+        applicationId = "org.venrescate.rescue"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -41,7 +41,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":baran-core"))
+    implementation(project(":venrescate-core"))
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.01.00")

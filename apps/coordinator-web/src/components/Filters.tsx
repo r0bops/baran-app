@@ -1,5 +1,5 @@
 // Coordinator filters — kind, priority, trust tier, reach, disputed-only.
-import type { BaranRecord } from '../lib/api';
+import type { VenRescateRecord } from '../lib/api';
 
 export interface FilterState {
   type: string; // '' = all
@@ -19,7 +19,7 @@ export const DEFAULT_FILTERS: FilterState = {
 
 const TYPES = ['sos', 'victim_found', 'missing_person', 'need', 'hazard', 'status'];
 
-export function applyFilters(records: BaranRecord[], f: FilterState): BaranRecord[] {
+export function applyFilters(records: VenRescateRecord[], f: FilterState): VenRescateRecord[] {
   return records.filter((b) => {
     const r = b.record;
     if (f.type && r.type !== f.type) return false;

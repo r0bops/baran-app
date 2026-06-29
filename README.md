@@ -1,14 +1,14 @@
-# Baran
+# VenRescate
 
 **Offline, phone-only, peer-to-peer rescue-coordination mesh for disaster zones** — for when the power is out, the cell towers are down, and the internet is blacked out.
 
-> *Named for Paul Baran, who invented the distributed, infrastructure-free, self-rerouting network. Companion to Faraday.*
+> *Named for Venezuela — **ven** is also Spanish for "come." Built on Paul Baran's distributed, infrastructure-free, self-rerouting network principles. Companion to Faraday.*
 
 ## The problem
 
 After a major disaster — like the 2026 Venezuela earthquake near Caracas / La Guaira — cell towers and power fail, and the only network left is the phones already in people's pockets. The people doing the rescuing (neighbors, volunteers, search teams) have no way to share who needs help, who has been found, and what has already been searched.
 
-## What Baran does
+## What VenRescate does
 
 People rescuing people create tiny, signed records — **SOS, victim-found, need, hazard, missing-person** — that:
 

@@ -2,7 +2,7 @@
 // On desktop (Tauri) the seed lives in the OS keychain (macOS Keychain / Windows
 // Credential Manager / Linux SecretService) via Rust commands. In a plain browser
 // it falls back to localStorage. The private key never leaves the device.
-const LS_KEY = 'baran.coordinator.seed';
+const LS_KEY = 'venrescate.coordinator.seed';
 
 type Invoke = (cmd: string, args?: Record<string, unknown>) => Promise<unknown>;
 

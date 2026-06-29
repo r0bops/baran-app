@@ -5,7 +5,7 @@ import {
   fetchIncidents,
   registerCoordinator,
   connectWebSocket,
-  type BaranRecord,
+  type VenRescateRecord,
   type Incident,
 } from './lib/api';
 import { ensureAuth, initCoordinator } from './lib/coordinator';
@@ -34,10 +34,10 @@ type View = 'map' | 'incidents' | 'records';
 export default function App() {
   const [view, setView] = useState<View>('map');
   const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [records, setRecords] = useState<BaranRecord[]>([]);
+  const [records, setRecords] = useState<VenRescateRecord[]>([]);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<{ record: BaranRecord; attestations: BaranRecord[] } | null>(null);
+  const [detail, setDetail] = useState<{ record: VenRescateRecord; attestations: VenRescateRecord[] } | null>(null);
   const [wsLive, setWsLive] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [coordId, setCoordId] = useState<string>('');
@@ -47,9 +47,9 @@ export default function App() {
   const [enabledLayers, setEnabledLayers] = useState<Record<string, boolean>>(() => {
     const def: Record<string, boolean> = {};
     for (const s of SOURCES) def[s.id] = s.enabledByDefault;
-    return { ...def, ...(loadJSON<Record<string, boolean>>('baran.layers') || {}) };
+    return { ...def, ...(loadJSON<Record<string, boolean>>('venrescate.layers') || {}) };
   });
-  const [filterState, setFilterState] = useState<Record<string, Record<string, string[]>>>(() => loadJSON('baran.filters') || {});
+  const [filterState, setFilterState] = useState<Record<string, Record<string, string[]>>>(() => loadJSON('venrescate.filters') || {});
   const [offlineTs, setOfflineTs] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [draftLocation, setDraftLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -118,8 +118,8 @@ export default function App() {
     return () => ctrl.abort();
   }, []);
 
-  useEffect(() => saveJSON('baran.layers', enabledLayers), [enabledLayers]);
-  useEffect(() => saveJSON('baran.filters', filterState), [filterState]);
+  useEffect(() => saveJSON('venrescate.layers', enabledLayers), [enabledLayers]);
+  useEffect(() => saveJSON('venrescate.filters', filterState), [filterState]);
 
   useEffect(() => {
     return connectWebSocket(
@@ -165,10 +165,10 @@ export default function App() {
 
   const exportMenu = (
     <div style={{ display: 'flex', gap: 6 }}>
-      <button title="Exportar CSV con procedencia (firmas, hashes, tier)" style={ghost} onClick={() => downloadFile('baran-records.csv', toCSV(filtered), 'text/csv')}>
+      <button title="Exportar CSV con procedencia (firmas, hashes, tier)" style={ghost} onClick={() => downloadFile('venrescate-records.csv', toCSV(filtered), 'text/csv')}>
         ⬇ CSV
       </button>
-      <button title="Exportar GeoJSON con procedencia" style={ghost} onClick={() => downloadFile('baran-records.geojson', toGeoJSON(filtered), 'application/geo+json')}>
+      <button title="Exportar GeoJSON con procedencia" style={ghost} onClick={() => downloadFile('venrescate-records.geojson', toGeoJSON(filtered), 'application/geo+json')}>
         ⬇ GeoJSON
       </button>
     </div>
@@ -240,7 +240,7 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#0a0f1a', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
       <header style={{ padding: '10px 20px', backgroundColor: '#1a1a2e', borderBottom: '1px solid #16213e', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#38bdf8' }}>Baran · Coordinación</h1>
+          <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#38bdf8' }}>VenRescate · Coordinación</h1>
           <span style={{ fontSize: 11, color: '#64748b' }}>Rescate offline-first · es-VE</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

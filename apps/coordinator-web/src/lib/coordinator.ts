@@ -9,12 +9,12 @@ import {
   signRecord,
   hexToBytes,
   type Identity,
-} from './baran';
+} from './venrescate';
 import { authChallenge, authVerify, setAuthToken } from './api';
 import { loadSeedHex, saveSeedHex } from './secureStore';
 
-const SEED_KEY = 'baran.coordinator.seed';
-const SEQ_KEY = 'baran.coordinator.seq';
+const SEED_KEY = 'venrescate.coordinator.seed';
+const SEQ_KEY = 'venrescate.coordinator.seq';
 
 let cached: Identity | null = null;
 
