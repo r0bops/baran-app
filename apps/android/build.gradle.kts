@@ -4,7 +4,9 @@ plugins {
 }
 
 android {
-    namespace = "org.venrescate.rescue"
+    // namespace must match the Kotlin package the manifest's relative
+    // class names (.VenRescateApplication, .MainActivity, .mesh.*) resolve against.
+    namespace = "venrescate.android"
     compileSdk = 34
 
     defaultConfig {
